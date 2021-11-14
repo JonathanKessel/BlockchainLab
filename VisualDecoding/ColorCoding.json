@@ -1,9 +1,8 @@
 {
-  4 : "yellow"
-  2 : "red"
-  1 :  "purple"
-  5 :  "turquoise"
-  0 : "green"
-  3 : "blue"
-
+  "0" :  {"name": "green", "rgb": "288E20", "lower-hsv": null, "upper-hsv": null},
+  "1" :  {"name": "purple", "rgb": "B51BDB", "lower-hsv": null, "upper-hsv": null},
+  "2" : {"name": "red", "rgb": "F91C1C", "lower-hsv": null, "upper-hsv": null},
+  "3" :  {"name": "blue", "rgb": "1E1EF7", "lower-hsv": null, "upper-hsv": null},
+  "4" :  {"name": "yellow", "rgb": "F7EC2D", "lower-hsv": null, "upper-hsv": null},
+  "5" :  {"name": "turquoise", "rgb": "2CCDF2", "lower-hsv": null, "upper-hsv": null}
 }
