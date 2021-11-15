@@ -1,12 +1,10 @@
 import cv2
 import numpy as np
 import json
+import math
 
 def round_it(num):
-    l = len(str(num)) - 1
-    rounded = round(num / 10.0 ** l)
-    rounded = int(rounded * 10 ** l)
-    return rounded
+    return float(math.ceil(num / 100.0)) * 100
 
 def bubblesort(arr):
     n = len(arr)
