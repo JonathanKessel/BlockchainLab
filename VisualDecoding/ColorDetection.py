@@ -38,10 +38,11 @@ for key, value in colorInfo.items():
                                      value["upper-hsv"]["value"]),
                            "value": key}
 #loading image
-im = cv2.imread('example_small.png')
+im = cv2.imread('Handy_Bild_1 - klein.jpg')
 image_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
 # Running contour detection on picture 
 imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+imgray = cv2.blur(imgray, (20, 20))
 ret, thresh = cv2.threshold(imgray, 50, 255, 0)
 cv2.imwrite("gray_img.jpg", imgray)
 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -66,8 +67,8 @@ for i in range(len(contours)):
     # check if the sum of first to colums is larger than 150
     if avg_color[0] + avg_color[1] > 150:
         # saving each symbol
-        filename = str(i) + "-symbol.jpg"
-        cv2.imwrite(filename, cimg)
+        # filename = str(i) + "-symbol.jpg"
+        # cv2.imwrite(filename, cimg)
         # if so keep the coords of that symbol
         colored_contour_coords.append(pts)
 
@@ -115,11 +116,10 @@ extract the coordinates and paint the contour onto mask.
 then check what color range is applicable
 """
 i = 0
+token_id = ""
 # iterate over contours
+print(concat_lst)
 for contour in concat_lst:
-    # create mask
-    mask = np.zeros_like(image_hsv)
-    # fill mask with first ordered contour, pxs based on contour_pos and color based on the original hsv image
     # grab pxs
     contour_pxs = colored_contour_coords[contour["original_pos"]]
     # extract symbol based on pxs
@@ -131,6 +131,19 @@ for contour in concat_lst:
     symbol_extract = image_hsv[ymin: ymax, xmin: xmax]
     filename = str(i) + " ymin-" + str(ymin) + "ymax-" + str(ymax) + "---" + "xmin-" + str(xmin) + "xmax-" + str(xmax) + ".jpg"
     cv2.imwrite(filename, symbol_extract)
+    # identify color based on hsv Values
+    for key, value in converted_info.items():
+        lower_range = np.array(value["lower"])
+        upper_range = np.array(value["upper"])
+        # generate mask and fill it with pixels matching that color
+        mask = cv2.inRange(symbol_extract, lower_range, upper_range)
+        hascolor = np.sum(mask)
+        if hascolor > 150:
+            print("color match!", key)
+            # print("number of pixels found: ", hascolor)
+            token_id = token_id + value["value"]
+
+    print(token_id)
     i += 1
 
 
