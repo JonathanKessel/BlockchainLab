@@ -115,6 +115,7 @@ extract the coordinates and paint the contour onto mask.
 then check what color range is applicable
 """
 i = 0
+token_id = ""
 # iterate over contours
 for contour in concat_lst:
     # create mask
@@ -129,8 +130,18 @@ for contour in concat_lst:
     ymin, ymax = min(contour_pxs[0]), max(contour_pxs[0])
     # extract symbol from pic
     symbol_extract = image_hsv[ymin: ymax, xmin: xmax]
-    filename = str(i) + " ymin-" + str(ymin) + "ymax-" + str(ymax) + "---" + "xmin-" + str(xmin) + "xmax-" + str(xmax) + ".jpg"
-    cv2.imwrite(filename, symbol_extract)
+    # filename = str(i) + " ymin-" + str(ymin) + "ymax-" + str(ymax) + "---" + "xmin-" + str(xmin) + "xmax-" + str(xmax) + ".jpg"
+    # cv2.imwrite(filename, symbol_extract)
+    # identify color based on hsv Values
+    for key, value in converted_info.items():
+        lower_range = np.array(value["lower"])
+        upper_range = np.array(value["upper"])
+        # check for color match
+        if symbol_extract is cv2.inRange(symbol_extract, lower_range, upper_range):
+            print("color match!", key)
+            token_id = token_id + value["value"]
+
+    print(token_id)
     i += 1
 
 
