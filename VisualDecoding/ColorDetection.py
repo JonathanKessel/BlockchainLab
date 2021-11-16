@@ -38,10 +38,11 @@ for key, value in colorInfo.items():
                                      value["upper-hsv"]["value"]),
                            "value": key}
 #loading image
-im = cv2.imread('example_small.png')
+im = cv2.imread('Handy_Bild_1 - klein.jpg')
 image_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
 # Running contour detection on picture 
 imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+imgray = cv2.blur(imgray, (20, 20))
 ret, thresh = cv2.threshold(imgray, 50, 255, 0)
 cv2.imwrite("gray_img.jpg", imgray)
 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
