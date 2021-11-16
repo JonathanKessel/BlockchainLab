@@ -66,8 +66,8 @@ for i in range(len(contours)):
     # check if the sum of first to colums is larger than 150
     if avg_color[0] + avg_color[1] > 150:
         # saving each symbol
-        filename = str(i) + "-symbol.jpg"
-        cv2.imwrite(filename, cimg)
+        # filename = str(i) + "-symbol.jpg"
+        # cv2.imwrite(filename, cimg)
         # if so keep the coords of that symbol
         colored_contour_coords.append(pts)
 
@@ -117,10 +117,8 @@ then check what color range is applicable
 i = 0
 token_id = ""
 # iterate over contours
+print(concat_lst)
 for contour in concat_lst:
-    # create mask
-    mask = np.zeros_like(image_hsv)
-    # fill mask with first ordered contour, pxs based on contour_pos and color based on the original hsv image
     # grab pxs
     contour_pxs = colored_contour_coords[contour["original_pos"]]
     # extract symbol based on pxs
@@ -130,15 +128,18 @@ for contour in concat_lst:
     ymin, ymax = min(contour_pxs[0]), max(contour_pxs[0])
     # extract symbol from pic
     symbol_extract = image_hsv[ymin: ymax, xmin: xmax]
-    # filename = str(i) + " ymin-" + str(ymin) + "ymax-" + str(ymax) + "---" + "xmin-" + str(xmin) + "xmax-" + str(xmax) + ".jpg"
-    # cv2.imwrite(filename, symbol_extract)
+    filename = str(i) + " ymin-" + str(ymin) + "ymax-" + str(ymax) + "---" + "xmin-" + str(xmin) + "xmax-" + str(xmax) + ".jpg"
+    cv2.imwrite(filename, symbol_extract)
     # identify color based on hsv Values
     for key, value in converted_info.items():
         lower_range = np.array(value["lower"])
         upper_range = np.array(value["upper"])
-        # check for color match
-        if symbol_extract is cv2.inRange(symbol_extract, lower_range, upper_range):
+        # generate mask and fill it with pixels matching that color
+        mask = cv2.inRange(symbol_extract, lower_range, upper_range)
+        hascolor = np.sum(mask)
+        if hascolor > 150:
             print("color match!", key)
+            # print("number of pixels found: ", hascolor)
             token_id = token_id + value["value"]
 
     print(token_id)
