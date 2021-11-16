@@ -24,12 +24,7 @@ def bubblesort(arr):
             # compare x coordinates, if it is to the right -> higher number
             if arr[j]["coods"][0] > arr[j + 1]["coods"][0]:
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
-            # if its to the left compare height (y coordinate)
-                # if its below -> higher number
-            else:
-                if arr[j]["coods"][1] > arr[j + 1]["coods"][1]:
-                    arr[j], arr[j + 1] = arr[j + 1], arr[j]
-    return arr
+
 
 # get colorcodes from json
 file = open("./ColorCoding.json")
@@ -81,12 +76,64 @@ contour_pos = []
 l = 0
 
 for contour in colored_contour_coords:
-    avg_y = round_it(np.mean(contour[0]))
-    avg_x = round_it(np.mean(contour[1]))
-    contour_pos.append({"coods": (avg_x, avg_y), "pos": l})
+    avg_y = np.mean(contour[0])
+    avg_x = np.mean(contour[1])
+    contour_pos.append({"coods": (avg_x, avg_y), "original_pos": l})
     l += 1
 
-    ordered_pos = bubblesort(contour_pos)
+
+# computing the avg y coordinate
+y_values = []
+for y_value in contour_pos:
+    y_values.append(y_value["coods"][0])
+avg_y = sum(y_values) / len(y_values)
+print(avg_y)
+
+upper_row = []
+lower_row = []
+# splitting array into two rows based on position to the middle (avg)
+for entry in contour_pos:
+    # is the current y value below or above the middle?
+    if entry["coods"][1] > avg_y:
+        lower_row.append(entry)
+    else:
+        upper_row.append(entry)
+# sort arrays independently
+bubblesort(upper_row)
+bubblesort(lower_row)
+# concatenate arrays
+concat_lst = upper_row + lower_row
+# add ordered_indexing
+i = 0
+for item in concat_lst:
+    item["ordered_pos"] = i
+    i += 1
+
+"""
+Get color from each colored contour
+extract the coordinates and paint the contour onto mask. 
+then check what color range is applicable
+"""
+i = 0
+# iterate over contours
+for contour in concat_lst:
+    # create mask
+    mask = np.zeros_like(image_hsv)
+    # fill mask with first ordered contour, pxs based on contour_pos and color based on the original hsv image
+    # grab pxs
+    contour_pxs = colored_contour_coords[contour["original_pos"]]
+    # extract symbol based on pxs
+    # get xmin, ymin
+    xmin, xmax = min(contour_pxs[1]), max(contour_pxs[1])
+    # get ymin, ymax
+    ymin, ymax = min(contour_pxs[0]), max(contour_pxs[0])
+    # extract symbol from pic
+    symbol_extract = image_hsv[ymin: ymax, xmin: xmax]
+    filename = str(i) + " ymin-" + str(ymin) + "ymax-" + str(ymax) + "---" + "xmin-" + str(xmin) + "xmax-" + str(xmax) + ".jpg"
+    cv2.imwrite(filename, symbol_extract)
+    i += 1
+
+
 
 print("tatdaaa")
 cv2.imwrite("intensities_im.jpg", im)
