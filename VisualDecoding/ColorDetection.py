@@ -38,7 +38,7 @@ for key, value in colorInfo.items():
                                      value["upper-hsv"]["value"]),
                            "value": key}
 #loading image
-im = cv2.imread('Handy_Bild_1 - klein.jpg')
+im = cv2.imread('example_small.png')
 image_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
 # Running contour detection on picture 
 imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)

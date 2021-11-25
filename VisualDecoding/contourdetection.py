@@ -2,7 +2,7 @@
 import cv2
 import numpy as np
 
-im = cv2.imread('Handy_Bild_1.jpg')
+im = cv2.imread('example_small.png')
 imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 cv2.imwrite("gray_img.jpg", imgray)
 imgray = cv2.blur(imgray, (10, 10))
