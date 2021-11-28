@@ -38,15 +38,16 @@ for key, value in colorInfo.items():
                                      value["upper-hsv"]["value"]),
                            "value": key}
 #loading image
-im = cv2.imread('example_small.png')
+im = cv2.imread('asset_1_small.png')
 image_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
 # Running contour detection on picture 
 imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-imgray = cv2.blur(imgray, (20, 20))
+imgray = cv2.blur(imgray, (1, 1))
 ret, thresh = cv2.threshold(imgray, 50, 255, 0)
 cv2.imwrite("gray_img.jpg", imgray)
 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 # cv2.drawContours(im, contours, -1, (0, 255, 0), 3)
+
 # Initialize empty list
 lst_intensities = []
 colored_contour_coords = []
@@ -88,7 +89,7 @@ y_values = []
 for y_value in contour_pos:
     y_values.append(y_value["coods"][0])
 avg_y = sum(y_values) / len(y_values)
-print(avg_y)
+# print(avg_y)
 
 upper_row = []
 lower_row = []
@@ -99,6 +100,7 @@ for entry in contour_pos:
         lower_row.append(entry)
     else:
         upper_row.append(entry)
+
 # sort arrays independently
 bubblesort(upper_row)
 bubblesort(lower_row)
@@ -138,16 +140,18 @@ for contour in concat_lst:
         # generate mask and fill it with pixels matching that color
         mask = cv2.inRange(symbol_extract, lower_range, upper_range)
         hascolor = np.sum(mask)
-        if hascolor > 150:
+        # this should save all hascolor values for each symbol and decide on the actual color later on based on the
+        # number of hits
+        if hascolor > 15000:
             print("color match!", key)
+            print(i)
             # print("number of pixels found: ", hascolor)
             token_id = token_id + value["value"]
-
-    print(token_id)
     i += 1
 
 
-
+print(token_id)
+print(len(token_id))
 print("tatdaaa")
 cv2.imwrite("intensities_im.jpg", im)
 cv2.imwrite("intensities_imgra.jpg", imgray)
