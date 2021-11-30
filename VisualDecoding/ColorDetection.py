@@ -38,19 +38,25 @@ for key, value in colorInfo.items():
                                      value["upper-hsv"]["value"]),
                            "value": key}
 #loading image
-im = cv2.imread('asset_1_small.png')
+im = cv2.imread('extract_img.jpg')
 image_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
 # Running contour detection on picture 
 imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-imgray = cv2.blur(imgray, (1, 1))
-ret, thresh = cv2.threshold(imgray, 50, 255, 0)
+imgray = cv2.blur(imgray, (10, 10))
+mask = cv2.inRange(image_hsv, (0, 0, 100), (255, 255, 255))
 cv2.imwrite("gray_img.jpg", imgray)
-contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+cv2.imwrite("mask.jpg", mask)
+imsave = im.copy()
+cv2.drawContours(imsave, contours, -1, (0, 255, 0), 3)
+cv2.imwrite("color_contour.jpg", imsave)
 # cv2.drawContours(im, contours, -1, (0, 255, 0), 3)
 
 # Initialize empty list
 lst_intensities = []
 colored_contour_coords = []
+rel_cnts = []
+cnt_sizes = []
 print("number of contours: ", len(contours))
 # For each list of contour points...
 for i in range(len(contours)):
@@ -66,23 +72,59 @@ for i in range(len(contours)):
     # calculate mean color values
     avg_color = np.mean(lst_intensities[i], axis = 0)
     # check if the sum of first to colums is larger than 150
+    cnt_size = len(pts[0])
     if avg_color[0] + avg_color[1] > 150:
         # saving each symbol
         # filename = str(i) + "-symbol.jpg"
         # cv2.imwrite(filename, cimg)
         # if so keep the coords of that symbol
-        colored_contour_coords.append(pts)
+        if cnt_size > 100:
+            rel_cnts.append(contours[i])
+            cnt_sizes.append(cnt_size)
+            colored_contour_coords.append(pts)
 
 print("anzahl farbiger symbole", len(colored_contour_coords))
 contour_pos = []
 l = 0
-
 for contour in colored_contour_coords:
     avg_y = np.mean(contour[0])
     avg_x = np.mean(contour[1])
-    contour_pos.append({"coods": (avg_x, avg_y), "original_pos": l})
+    contour_pos.append({"coods": (avg_x, avg_y), "original_pos": l, "cnt_size": cnt_sizes[l]})
     l += 1
 
+# Remove contours that are too small
+sizes = []
+for cnt in contour_pos:
+    sizes.append(cnt["cnt_size"])
+
+upper_70 = np.percentile(sizes, 70) * 3
+lower_30 = np.percentile(sizes, 30) / 3
+copy_colored_contour_coords = colored_contour_coords.copy()
+copy_cnt_pos = contour_pos.copy()
+for contour in contour_pos:
+    if contour["cnt_size"] < lower_30:
+        copy_colored_contour_coords.pop(copy_cnt_pos.index(contour))
+        copy_cnt_pos.remove(contour)
+contour_pos = copy_cnt_pos
+colored_contour_coords = copy_colored_contour_coords
+
+
+
+# saving relevant contours for visiualizing
+rel_img = im.copy()
+cv2.drawContours(rel_img, rel_cnts, -1, (0, 255, 0), 3)
+
+i = 0
+for contour in colored_contour_coords:
+    x_y_1 = int(contour_pos[i]["coods"][0]) + 20, int(contour_pos[i]["coods"][1]) + 20
+    x_y_2 = int(contour_pos[i]["coods"][0]), int(contour_pos[i]["coods"][1])
+    rel_img = cv2.putText(rel_img, str(i), x_y_1, cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                          (0, 255, 0))
+    rel_img = cv2.circle(rel_img, x_y_2, radius=5,
+                          color=(0, 255, 255), thickness=-1)
+    i += 1
+
+cv2.imwrite("rel-contours.jpg", rel_img)
 
 # computing the avg y coordinate
 y_values = []
@@ -131,22 +173,24 @@ for contour in concat_lst:
     ymin, ymax = min(contour_pxs[0]), max(contour_pxs[0])
     # extract symbol from pic
     symbol_extract = image_hsv[ymin: ymax, xmin: xmax]
-    filename = str(i) + " ymin-" + str(ymin) + "ymax-" + str(ymax) + "---" + "xmin-" + str(xmin) + "xmax-" + str(xmax) + ".jpg"
-    cv2.imwrite(filename, symbol_extract)
+    #filename = str(i) + " ymin-" + str(ymin) + "ymax-" + str(ymax) + "---" + "xmin-" + str(xmin) + "xmax-" + str(xmax) + ".jpg"
+    #cv2.imwrite(filename, symbol_extract)
     # identify color based on hsv Values
+    color_fit = {}
     for key, value in converted_info.items():
         lower_range = np.array(value["lower"])
         upper_range = np.array(value["upper"])
         # generate mask and fill it with pixels matching that color
         mask = cv2.inRange(symbol_extract, lower_range, upper_range)
         hascolor = np.sum(mask)
+        color_fit[key] = hascolor
         # this should save all hascolor values for each symbol and decide on the actual color later on based on the
         # number of hits
-        if hascolor > 15000:
-            print("color match!", key)
-            print(i)
-            # print("number of pixels found: ", hascolor)
-            token_id = token_id + value["value"]
+    # find out best color match
+    color = max(color_fit, key=color_fit.get)
+    print("color match!", color)
+    # print("number of pixels found: ", hascolor)
+    token_id = token_id + converted_info[color]["value"]
     i += 1
 
 

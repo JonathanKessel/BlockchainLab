@@ -21,7 +21,7 @@ import seaborn as sns
 from statistics import mean
 
 
-img = cv2. imread('Desktop1.jpeg')
+img = cv2. imread('IMG_5685_1.png')
 # img = cv2. imread('example_block-2.png')
 
 # approximate the middle of the picture
@@ -71,6 +71,7 @@ for i in range(len(contours)):
     # is this a white contour?
     # calculate mean color values
     avg_color = np.mean(lst_intensities[i], axis=0)
+    # filter for white / not gray
     if avg_color[2] > 100:
         # we dont want really small contours since they are usually noise and we expect
         # a somewhat large picture
