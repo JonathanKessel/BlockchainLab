@@ -116,7 +116,7 @@ cv2.drawContours(rel_img, rel_cnts, -1, (0, 255, 0), 3)
 
 i = 0
 for contour in colored_contour_coords:
-    x_y_1 = int(contour_pos[i]["coods"][0]) + 20, int(contour_pos[i]["coods"][1]) + 20
+    x_y_1 = int(contour_pos[i]["coods"][0]) + 50, int(contour_pos[i]["coods"][1]) + 20
     x_y_2 = int(contour_pos[i]["coods"][0]), int(contour_pos[i]["coods"][1])
     rel_img = cv2.putText(rel_img, str(i), x_y_1, cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                           (0, 255, 0))

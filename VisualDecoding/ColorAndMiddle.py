@@ -21,7 +21,7 @@ import seaborn as sns
 from statistics import mean
 
 
-img = cv2. imread('IMG_5685_1.png')
+img = cv2. imread('IMG_20211116_101731.jpg')
 # img = cv2. imread('example_block-2.png')
 
 # approximate the middle of the picture
