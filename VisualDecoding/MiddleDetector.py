@@ -21,7 +21,7 @@ import seaborn as sns
 from statistics import mean
 
 
-img = cv2. imread('example_block-2.png')
+img = cv2. imread('IMG_5685_1.png')
 # img = cv2. imread('example_block-2.png')
 
 # approximate the middle of the picture
@@ -49,6 +49,7 @@ cv2.imwrite("middletection.jpg", imsave)
 cnt_inf = {}
 # c: {size: xx, pos: (xxx, yyy), dst_next_cnt: xxx}
 lst_intensities = []
+# Saving pixels of each contour in coords_cnts
 # coords_cnts = {contour_key: [[x_values], [y_values]]}
 coords_cnts = {}
 for i in range(len(contours)):
@@ -57,7 +58,7 @@ for i in range(len(contours)):
     cimg = np.zeros_like(imgGry)
     cv2.drawContours(cimg, contours, i, color=255, thickness=-1)
     # Access the image pixels and create a 1D numpy array then add to list
-    # pts = koordinaten der aktuellen kontour
+    # pts = coordinates of the contour
     pts = np.where(cimg == 255)
     avg_y = np.mean(pts[0])
     avg_x = np.mean(pts[1])
@@ -71,10 +72,14 @@ for i in range(len(contours)):
     # calculate mean color values
     avg_color = np.mean(lst_intensities[i], axis=0)
     if avg_color[2] > 100:
+        # we dont want really small contours since they are usually noise and we expect
+        # a somewhat large picture
         if cnt_size > 50:
+            # we save the avg position and size of each contour, the distance to next contour will be added shortly
+            # this dictionary will be used throughout the code to access the contours
             cnt_inf[i] = {"size": cnt_size, "pos": (avg_x, avg_y), "dst_next_cnt": None}
 
-# show relevant contours
+# saving relevant contours for visiualizing
 rel_contours = []
 rel_img = img.copy()
 for key, info in cnt_inf.items():
@@ -82,22 +87,27 @@ for key, info in cnt_inf.items():
 cv2.drawContours(rel_img, contours, -1, (0, 255, 0), 3)
 cv2.imwrite("rel-contours.jpg", rel_img)
 
-print("i")
 
 # Compute distances from each contour to each contour and get shortest dist
+# first loop to iterate over cnt_inf items
 for i, info in cnt_inf.items():
+    # dictionary to save all distances between i and n. Will be redeclared as soon as i is increased
     distances = []
     x_y_i = info["pos"]
+    # secon loop to compare against the first loop
     for n, info2 in cnt_inf.items():
+        # we dont want to compare n against i since they are the same and the distance would be zero
         if i != n:
+            # grabbing coordinates and computing the distance
             x_y_n = info2["pos"]
             x_dist = (x_y_i[0] - x_y_n[0])**2
             y_dist = (x_y_i[1] - x_y_n[1])**2
             curr_distance = math.sqrt(x_dist + y_dist)
-            if curr_distance == 0:
-                print("zerroooo")
+            # saving the distance measured between n and i
             distances.append(curr_distance)
+    # find shortest distance
     shortest_dist = min(distances)
+    # save the shortest distance
     cnt_inf[i]["dst_next_cnt"] = shortest_dist
     print("cnt: ", i, "info:", info)
 
