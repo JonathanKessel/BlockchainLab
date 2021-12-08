@@ -21,7 +21,7 @@ import seaborn as sns
 from statistics import mean
 
 
-img = cv2. imread('IMG_20211116_101731.jpg')
+img = cv2. imread('IMG_5685_1.png')
 # img = cv2. imread('example_block-2.png')
 
 # approximate the middle of the picture
@@ -38,13 +38,13 @@ cv2.imwrite('middle-gray.jpg', imgGry)
 mask = cv2.inRange(image_hsv, (0, 0, 185), (255, 255, 255))
 
 # ret, thresh = cv2.threshold(imgGry, 50, 255, 0)
-cv2.imwrite("mask.jpg", mask)
+cv2.imwrite("middletection-mask.jpg", mask)
 
 # get contours
 contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 imsave = img.copy()
 cv2.drawContours(imsave, contours, -1, (0, 255, 0), 3)
-cv2.imwrite("middletection.jpg", imsave)
+cv2.imwrite("middletection-contours.jpg", imsave)
 
 cnt_inf = {}
 # c: {size: xx, pos: (xxx, yyy), dst_next_cnt: xxx}
@@ -86,7 +86,7 @@ rel_img = img.copy()
 for key, info in cnt_inf.items():
     rel_contours.append(contours[key])
 cv2.drawContours(rel_img, contours, -1, (0, 255, 0), 3)
-cv2.imwrite("rel-contours.jpg", rel_img)
+cv2.imwrite("middletection-rel-contours.jpg", rel_img)
 
 
 # Compute distances from each contour to each contour and get shortest dist
@@ -319,7 +319,7 @@ lower_right_cushion = (int(lower_right_cords[0] + cushion), int(lower_right_cord
 extract_img = img[upper_left_cushion[1]:lower_right_cushion[1],
                   upper_left_cushion[0]:lower_right_cushion[0]]
 
-cv2.imwrite("extract_img.jpg", extract_img)
+cv2.imwrite("middletection-extract_img.jpg", extract_img)
 
 """VISUALIZING --- BEGINNING"""
 palette = sns.color_palette("husl", n_cluster)
@@ -359,7 +359,7 @@ for cluster, pos in cluster_mean_pos.items():
 imgColor = cv2.circle(imgColor, (int(w / 2), int(h / 2)), radius=35,
                           color=(0, 255, 255), thickness=-1)
 
-cv2.imwrite("result_middle2.jpg", imgColor)
+cv2.imwrite("middletection-result_middle2.jpg", imgColor)
 
 
 

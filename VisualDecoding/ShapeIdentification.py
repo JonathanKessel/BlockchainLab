@@ -1,33 +1,54 @@
 import numpy as np
 import cv2
+from copy import deepcopy
 
-img = cv2.imread("Handy_Bild_1.jpg")
+img = cv2.imread("middletection-extract_img.jpg")
 imgGry = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+image_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+mask = cv2.inRange(image_hsv, (0, 0, 150), (255, 255, 255))
+cv2.imwrite("shapedetection-mask.jpg", mask)
 imgGry = cv2.blur(imgGry, (10, 10))
 
-ret , thrash = cv2.threshold(imgGry, 240 , 255, cv2.CHAIN_APPROX_NONE)
-contours , hierarchy = cv2.findContours(thrash, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+img_copy = img.copy()
+img_copy = cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 3)
+cv2.imwrite("shapedetection-contours.jpg", img_copy)
 
+# removing noise
+cnt_copy = []
+for cnt in contours:
+    size = cv2.contourArea(cnt)
+    if size > 500:
+        cnt_copy.append(cnt)
+        print(size)
 
+contours = cnt_copy
+img_copy = img.copy()
+img_copy = cv2.drawContours(img_copy, cnt_copy, -1, (0, 255, 0), 3)
+cv2.imwrite("shapedetection-rel-contours.jpg", img_copy)
 
 for contour in contours:
-    approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
-    cv2.drawContours(img, [approx], 0, (0, 0, 0), 5)
-    x = approx.ravel()[0]
-    y = approx.ravel()[1] - 5
+    # find the corners of contours, True because contours are closed
+    peri = cv2.arcLength(contour, True)
+    print("peri: ", peri)
+    # gets number of points and position(?)
+    approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
+    points = len(approx)
+    x, y, w, h = cv2.boundingRect(approx)
+    img = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 5)
+    img = cv2.putText(img, "Points: " + str(points), (x + w + 5, y + 5), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 255, 255))
+    # we have a rectangle
+    if len(approx) == 4:
+        img = cv2.putText(img, "rectangle", (x + w + 15, y + 15), cv2.FONT_HERSHEY_SIMPLEX, .5,
+                          (0, 255, 255))
     if len(approx) == 3:
-        cv2.putText( img, "Triangle", (x, y), cv2.FONT_HERSHEY_COMPLEX, 2, (250, 250, 250))
+        img = cv2.putText(img, "triangle", (x + w + 15, y + 15), cv2.FONT_HERSHEY_SIMPLEX, .5,
+                          (0, 255, 255))
+        #TODO Figuring out which direction the traingle is facing by investigating the points
+    if len(approx) > 4:
+        img = cv2.putText(img, "circle", (x + w + 15, y + 15), cv2.FONT_HERSHEY_SIMPLEX, .5,
+                          (0, 255, 255))
 
-    elif len(approx) == 4 :
-        x, y , w, h = cv2.boundingRect(approx)
-        aspectRatio = float(w)/h
-        print(aspectRatio)
-        if aspectRatio >= 0.95 and aspectRatio < 1.05:
-            cv2.putText(img, "square", (x, y), cv2.FONT_HERSHEY_COMPLEX, 2, (250, 250, 250))
 
-        else:
-            cv2.putText(img, "rectangle", (x, y), cv2.FONT_HERSHEY_COMPLEX, 2, (250, 250, 250))
-    else:
-        cv2.putText(img, "circle", (x, y), cv2.FONT_HERSHEY_COMPLEX, 2, (250, 250, 250))
 
-cv2.imwrite('shapes.jpg', img)
+cv2.imwrite("shapedetection-info.jpg", img)

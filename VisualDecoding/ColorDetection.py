@@ -38,12 +38,12 @@ for key, value in colorInfo.items():
                                      value["upper-hsv"]["value"]),
                            "value": key}
 #loading image
-im = cv2.imread('extract_img.jpg')
+im = cv2.imread('middletection-extract_img.jpg')
 image_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
 # Running contour detection on picture 
 imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 imgray = cv2.blur(imgray, (10, 10))
-mask = cv2.inRange(image_hsv, (0, 0, 100), (255, 255, 255))
+mask = cv2.inRange(image_hsv, (0, 0, 185), (255, 255, 255))
 cv2.imwrite("gray_img.jpg", imgray)
 contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 cv2.imwrite("mask.jpg", mask)
