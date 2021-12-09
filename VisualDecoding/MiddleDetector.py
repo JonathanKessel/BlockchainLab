@@ -21,7 +21,7 @@ import seaborn as sns
 from statistics import mean
 
 
-img = cv2. imread('example_block-2.png')
+img = cv2. imread('Desktop1.jpeg')
 # img = cv2. imread('example_block-2.png')
 
 # approximate the middle of the picture
@@ -49,6 +49,7 @@ cv2.imwrite("middletection.jpg", imsave)
 cnt_inf = {}
 # c: {size: xx, pos: (xxx, yyy), dst_next_cnt: xxx}
 lst_intensities = []
+# Saving pixels of each contour in coords_cnts
 # coords_cnts = {contour_key: [[x_values], [y_values]]}
 coords_cnts = {}
 for i in range(len(contours)):
@@ -57,7 +58,7 @@ for i in range(len(contours)):
     cimg = np.zeros_like(imgGry)
     cv2.drawContours(cimg, contours, i, color=255, thickness=-1)
     # Access the image pixels and create a 1D numpy array then add to list
-    # pts = koordinaten der aktuellen kontour
+    # pts = coordinates of the contour
     pts = np.where(cimg == 255)
     avg_y = np.mean(pts[0])
     avg_x = np.mean(pts[1])
@@ -71,10 +72,14 @@ for i in range(len(contours)):
     # calculate mean color values
     avg_color = np.mean(lst_intensities[i], axis=0)
     if avg_color[2] > 100:
-        if cnt_size > 50:
+        # we dont want really small contours since they are usually noise and we expect
+        # a somewhat large picture
+        if cnt_size > 100:
+            # we save the avg position and size of each contour, the distance to next contour will be added shortly
+            # this dictionary will be used throughout the code to access the contours
             cnt_inf[i] = {"size": cnt_size, "pos": (avg_x, avg_y), "dst_next_cnt": None}
 
-# show relevant contours
+# saving relevant contours for visiualizing
 rel_contours = []
 rel_img = img.copy()
 for key, info in cnt_inf.items():
@@ -82,22 +87,27 @@ for key, info in cnt_inf.items():
 cv2.drawContours(rel_img, contours, -1, (0, 255, 0), 3)
 cv2.imwrite("rel-contours.jpg", rel_img)
 
-print("i")
 
 # Compute distances from each contour to each contour and get shortest dist
+# first loop to iterate over cnt_inf items
 for i, info in cnt_inf.items():
+    # dictionary to save all distances between i and n. Will be redeclared as soon as i is increased
     distances = []
     x_y_i = info["pos"]
+    # secon loop to compare against the first loop
     for n, info2 in cnt_inf.items():
+        # we dont want to compare n against i since they are the same and the distance would be zero
         if i != n:
+            # grabbing coordinates and computing the distance
             x_y_n = info2["pos"]
             x_dist = (x_y_i[0] - x_y_n[0])**2
             y_dist = (x_y_i[1] - x_y_n[1])**2
             curr_distance = math.sqrt(x_dist + y_dist)
-            if curr_distance == 0:
-                print("zerroooo")
+            # saving the distance measured between n and i
             distances.append(curr_distance)
+    # find shortest distance
     shortest_dist = min(distances)
+    # save the shortest distance
     cnt_inf[i]["dst_next_cnt"] = shortest_dist
     print("cnt: ", i, "info:", info)
 
@@ -129,7 +139,7 @@ print(sorted_df)
 """
 CLUSTERING -- BEGINNING
 """
-cluster_model = Birch()
+cluster_model = Birch(threshold=2)
 labels_clustering = cluster_model.fit_predict(X)
 print(labels_clustering)
 
@@ -143,20 +153,83 @@ CLUSTERING -- END
 """
 
 """
+Cleaning cluster from Noise and removing outlier
+"""
+# clusters
+n_cluster = len(np.unique(labels_clustering))
+unique_cluster = np.unique(labels_clustering)
+# clusters_size = { c: [sizecnt0, sizecnt1]}
+clusters_size = {}
+# clusters_dst = { c: [sizecnt0, sizecnt1]}
+clusters_dst = {}
+cluster_70_size = {}
+cluster_30_size = {}
+cluster_70_dst = {}
+cluster_30_dst = {}
+for cluster in unique_cluster:
+    clusters_dst[cluster] = []
+    clusters_size[cluster] = []
+    # get avg next distance and size for each cluster
+    # --> size and distance for all cnts in each cluster
+    for key, value in cnt_inf.items():
+        if value["labels_clustering"] == cluster:
+            # append size and shortest distance of each contour
+            clusters_dst[cluster].append(value["dst_next_cnt"])
+            clusters_size[cluster].append(value["size"])
+
+# calculating avg size and distance
+for cluster in unique_cluster:
+    cluster_70_size[cluster] = np.percentile(clusters_size[cluster], 70)
+    cluster_30_size[cluster] = np.percentile(clusters_size[cluster], 30)
+
+    cluster_70_dst[cluster] = np.percentile(clusters_dst[cluster], 70)
+    cluster_30_dst[cluster] = np.percentile(clusters_dst[cluster], 30)
+
+to_be_deleted = []
+for cluster in unique_cluster:
+    # we want to eliminate based on distance if the cnt distance is above 30th of the 70th percentile,
+    # below 30% percentile
+    cluster_upper_dst_elim = int(cluster_70_dst[cluster]) * 1.3
+    cluster_lower_dst_elim = int(cluster_30_dst[cluster]) * 0.7
+    # we want to eliminate based on size if the object is 3 times smaller or larger than 30th / 70th percentile
+    cluster_upper_size_elim = int(cluster_70_size[cluster]) * 3
+    cluster_lower_size_elim = int(cluster_30_size[cluster]) / 3
+    for key, cnt in cnt_inf.items():
+        if cnt["labels_clustering"] == cluster:
+            # too big / to small?
+            if cnt["size"] > cluster_upper_size_elim:
+                to_be_deleted.append(key)
+            if cnt["size"] < cluster_lower_size_elim:
+                to_be_deleted.append(key)
+            # too far away?
+            if cnt["dst_next_cnt"] > cluster_upper_dst_elim:
+                to_be_deleted.append(key)
+                print("deleted")
+            # check if size too small / to big
+            if cnt["dst_next_cnt"] < cluster_lower_dst_elim:
+                if cnt["size"] > cluster_upper_size_elim:
+                    to_be_deleted.append(key)
+                if cnt["size"] < cluster_lower_size_elim:
+                    to_be_deleted.append(key)
+
+to_be_deleted = set(to_be_deleted)
+for record in to_be_deleted:
+    del cnt_inf[record]
+
+print("Hello")
+
+"""
 DECIDING WHICH CLUSTER TO CHOOSE based on the distance to the middle -> Middle doesnt work that well 
 at least in current implementation -> better would be by 
 """
 # center -> (x, y)
 center = (w/2, h/2)
-# clusters
-n_cluster = len(np.unique(labels_clustering))
-unique_cluster = np.unique(labels_clustering)
 # calculating center of each cluster
 x_y_cluster = [[], []]
 x_y_mean = {}
-closest_distance = None
-closest_cluster = None
+cluster_mean_pos = {}
 for cluster in unique_cluster:
+    x_y_cluster = [[], []]
     for key, value in cnt_inf.items():
         if value["labels_clustering"] == cluster:
             # append x and y values
@@ -166,23 +239,18 @@ for cluster in unique_cluster:
     mean_x = mean(x_y_cluster[0])
     mean_y = mean(x_y_cluster[1])
     #curr_distance = math.sqrt(((center[0] - mean(x_y_cluster[0]))**2) - (center[1] - )**2))
-    xplusy = ((center[0] - mean_x) ** 2) + ((center[0] - mean_y) ** 2)
+    xplusy = ((center[0] - mean_x) ** 2) + ((center[1] - mean_y) ** 2)
     curr_distance = math.sqrt(xplusy)
+    # saving pos of center of each cluster
+    cluster_mean_pos[cluster] = [mean_x, mean_y]
 
+    # saving distance of each cluster to center
     x_y_mean[cluster] = curr_distance
-# get cluster that is closest to the center
-i = 0
-for key, cluster in x_y_mean.items():
-    # first element we dont want to compare
-    if i == 0:
-        closest_distance = cluster
-        closest_cluster = key
-    else:
-        if closest_distance > cluster:
-            closest_distance = cluster
-            closest_cluster = key
-print(closest_cluster)
 
+
+# get cluster that is closest to the center
+closest_cluster = min(x_y_mean, key=x_y_mean.get)
+print("chosen cluster: ", closest_cluster)
 """
 Assuming we have successfully selected the right cluster all the distances should be about equal on the 
 correct symbols, we make sure and check the distance and eliminate those that are too far appart / close together
@@ -241,7 +309,7 @@ print("true lower right: ", lower_right_cords)
 sizes = []
 for key, cnt in cnt_inf.items():
     sizes.append(cnt["size"])
-cushion = mean(sizes) * 0.012
+cushion = mean(sizes) * 0.018
 print(cushion)
 upper_left_cushion = (int(upper_left_cords[0] - cushion), int(upper_left_cords[1] - cushion))
 lower_right_cushion = (int(lower_right_cords[0] + cushion), int(lower_right_cords[1] + cushion))
@@ -267,12 +335,28 @@ for key, info in cnt_inf.items():
                            (0, 255, 0), 20, cv2.LINE_AA)
 
     imgColor = cv2.putText(imgColor, str(round(info["size"])),
-                           (int(info["pos"][0]) - 50, int(info["pos"][1]) - 50), cv2.FONT_HERSHEY_SIMPLEX, 3,
-                           (0, 255, 0), 20, cv2.LINE_AA)
+                           (int(info["pos"][0]) - 50, int(info["pos"][1]) - 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                           (0, 255, 0))
     color_rgb = palette_RGB[info["labels_clustering"]]
+
 
     imgColor = cv2.circle(imgColor, (int(info["pos"][0]), int(info["pos"][1])), radius=20,
                           color=color_rgb, thickness=-1)
+
+
+# showing center of each cluster
+for cluster, pos in cluster_mean_pos.items():
+    print("test")
+    color_rgb = palette_RGB[cluster]
+    imgColor = cv2.circle(imgColor, (int(pos[0]), int(pos[1])), radius=35,
+                          color=color_rgb, thickness=-1)
+
+    imgColor = cv2.putText(imgColor, "cluster " + str(cluster),
+                           (int(pos[0] + 300), int(pos[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                           color_rgb)
+# showing center of picture
+imgColor = cv2.circle(imgColor, (int(w / 2), int(h / 2)), radius=35,
+                          color=(0, 255, 255), thickness=-1)
 
 cv2.imwrite("result_middle2.jpg", imgColor)
 
