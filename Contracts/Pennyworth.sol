@@ -53,7 +53,7 @@ contract PennyWorth{
         // set Token-ID, has to be same token-ID that is used in the erc contract 
         tokenID = _tokenId;
         // variable % to be given to the beneficiary / artist
-        patronageNumerator = _patronage;
+        patronageNumerator = _patronage.div(100);
         // get deployed artwork Contract 
         art = IERC721(_artwork);
         // Initialising ERC 721 Contract 
@@ -89,15 +89,26 @@ contract PennyWorth{
     /* used internally in external actions */
 
     // returns how much is owed from last collection to now.
-    // REWORK
+    // price * zeit_diff * prozentsatz / 365 Tage 
     function patronageOwed() public view returns (uint256 patronageDue) {
-        return price.mul(now.sub(timeLastCollected)).div(365 days);
+        return price.mul(now.sub(timeLastCollected)).mul(patronageNumerator).div(365 days);
     }
 
-    // returns how much time will it take until that amount of patronage is due
-    // REWORK
+    // returns how much time will it take until that amount of patronage is due -> time in seconds
+    // _time => time difference in seconds 
+    // REWORK 
     function patronageOwedRange(uint256 _time) public view returns (uint256 patronageDue) {
-        return price.mul(_time).div(365 days);
+        return price.mul(_time).mul(patronageNumerator).div(365 days);
+    }
+
+    // returns how much seconds are in a year 
+    function seconds_year() public view returns (uint256 seconds_per_year) {
+        return 365 days;
+    }
+
+    // returns the current patronage
+    function getPatronage() public view returns (uint256 numerator){
+        return patronageNumerator;
     }
 
     // returns how much has been collected since last collection
@@ -202,7 +213,6 @@ contract PennyWorth{
             the person will only buy the artwork if it is what they agreed to.
             thus: someone can't buy it from under them and change the price, eating into their deposit.
         */
-
 
         // front-running protection
         require(price == _currentPrice, "Current Price incorrect");
