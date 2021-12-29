@@ -1,37 +1,61 @@
 import React, { Component } from "react";
-import SimpleStorageContract from "./contracts/SimpleStorage.json";
+import PennyworthContract from "./contracts/PennyWorth.json";
+import ERC721 from "./contracts/ERC721.json"
 import getWeb3 from "./getWeb3";
-import truffleContract from "truffle-contract";
+// import truffleContract from "truffle-contract";
 import "./App.css";
 import Web3 from "web3";
 
 class App extends Component {
-  state = { storageValue: "", web3: null, accounts: null, contract: null, newValue: "", contractValue: ""};
+  state = { storageValue: "", 
+            web3: null, 
+            accounts: null, 
+            pennyContract: null, 
+            ercContract: null,
+            ercAdress: "", 
+            pennyAdress: "",
+            name: "", 
+            tokenID: "",
+            tokenURI: "", 
+            symbol: "",
+            artistAdress: "", 
+            artworkAdress: "", 
+            patronage: "",
+            };
 
   componentDidMount = async () => {
     try {
 
+      // Binding functions
+      this.handlePennyWorthConnect = this.handlePennyWorthConnect.bind(this)
+      this.handleArtworkConnect = this.handleArtworkConnect.bind(this)
+      this.handlegetArtistAdress = this.handlegetArtistAdress.bind(this)
+      this.handlegetArtworkAdress = this.handlegetArtworkAdress.bind(this)
+      this.handlegetArtworkSteward = this.handlegetArtworkSteward.bind(this)
+      this.handlegetArtworkTokenId = this.handlegetArtworkTokenId.bind(this)
+      this.handlegetArtworkInitStatus = this.handlegetArtworkInitStatus.bind(this)
       this.handleChange = this.handleChange.bind(this); 
-      this.handleSubmit = this.handleSubmit.bind(this);
-      this.handleContractDeploymentSubmit = this.handleContractDeploymentSubmit.bind(this);
+      this.handleArtworkSubmit = this.handleArtworkSubmit.bind(this);
+      this.handlePennyWorthSubmit = this.handlePennyWorthSubmit.bind(this)
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
 
       // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
 
+      // LEGACY ----
       // Get the contract instance.
-      const networkId = await web3.eth.net.getId();
-      const deployedNetwork = SimpleStorageContract.networks[networkId];
+      // const networkId = await web3.eth.net.getId();
+      // const deployedNetwork = SimpleStorageContract.networks[networkId];
       // Contract is called by JSON interface, [, adress] [, options]
-      const instance = new web3.eth.Contract(
-        SimpleStorageContract.abi,
-        deployedNetwork && deployedNetwork.address,
-      );
+      //const instance = new web3.eth.Contract(
+      //  SimpleStorageContract.abi,
+      //  deployedNetwork && deployedNetwork.address,
+      //); ----
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance }, this.runExample);
+      this.setState({ web3, accounts, });
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -43,67 +67,124 @@ class App extends Component {
 
   handleChange(event){
     
-    this.setState({newValue: event.target.value});
-    console.log(this.state.newValue);
+    this.setState({[event.target.name] : event.target.value})
   }
 
-  async handleContractChange(event){
-    this.setState({contractValue: event.target.value});
-    
-  }
 
-  async handleSubmit(event){
+  async handleArtworkSubmit(event) {
+    // this function generates the ERC721 contract from which the can be minted
     event.preventDefault();
     
-    const { accounts, contract } = this.state; 
-    console.log("handle triggered")
-    console.log("contract: ", contract)
-    // console.log("value", this.state.newValue)
-    // Interacts with smart contract method "set" via the .methods attribute
-    await contract.methods.set(this.state.newValue).send({from: accounts[0]});
-
-    // Gets the updatet info of the contract via .get() function, careful this is a call function since we dont alter the state of the smart contract
-    const response = await contract.methods.get().call({from: accounts[0]});
-    console.log("value: ", response)
-    // set response into state and display that response (since state changes, SS will reload)
-    this.setState({storageValue: response});
-
-  }
-
-  async handleContractDeploymentSubmit(event){
-    event.preventDefault();
-    const { web3, accounts, contract } = this.state; 
-    // create new Contract instance based on sol code without an adress since we have not deployed yet
+    const { accounts, contract, web3 } = this.state; 
+    console.log("Creating Artwork / Deploying ERC721 contract")
+    console.log(this.state);
     const newContract = new web3.eth.Contract(
-      SimpleStorageContract.abi);
+      ERC721.abi);
     // deploy this new contract to the network
-    const deployed = await newContract.deploy({data: SimpleStorageContract.bytecode, arguments: ['schokolade']}).send({from:accounts[0]})
-    console.log("adress: ", deployed._address)
-
-    // create new contract instance
-    const instance = new web3.eth.Contract(
-      SimpleStorageContract.abi,
-      deployed._address
-    );
-    // set this new contract as default contract to be looked into
-    this.setState({contract: instance})
-    // get the new stored value and display it by loading it into the state
-    const response = await instance.methods.get().call({from: accounts[0]});
-    console.log("response (should be schokolade): ", response)
-    // set response into state and display that response (since state changes, SS will reload)
-    this.setState({storageValue: response});
+    const deployed = await newContract.deploy({data: ERC721.bytecode, 
+      arguments: [this.state.tokenID, this.state.name, this.state.symbol, this.state.tokenURI
+      ]}).send({from:accounts[0]})
+    console.log("ERC721 deployed at: ", deployed._address)
+    // set the deployed artwork into the app state
+    this.setState({ercContract: deployed})
   }
 
+  async handleArtworkConnect(event){
+    // this connects to an existing Artwork / ERC Contract
+    event.preventDefault();
+    const { web3, accounts, contract, pennyAdress } = this.state; 
+    console.log("passed contract adress: ", pennyAdress)
+    // get current network 
+    const networkId = await web3.eth.net.getId();
+    // create artwork instance with that networkId and the Artwork adress, using the jsonInterface of the Artwork
+    const instance = new web3.eth.Contract(
+      PennyworthContract.abi,
+      pennyAdress,
+    );
+    // set the new instance 
+    this.setState({pennyContract: instance})
+  }
 
-  runExample = async () => {
-    const { contract } = this.state;
+  async handlegetArtworkInitStatus(){
+    // gets the init status from a deployed erc721 by using the getter function automatically created by sol
+    const { ercContract, accounts, contract } = this.state; 
+    const response = await ercContract.methods.init().call({from: accounts[0]});
+    console.log("artwork status is: ", response);
+  }
 
-    // Get the value from the contract to prove it worked.
-    const response = await contract.methods.get().call();
+  async handlegetArtworkTokenId(){
+    // gets the tokenID from a deployed erc721 by using the getter function automatically created by sol
+    const { ercContract, accounts, contract } = this.state; 
+    const response = await ercContract.methods.tokenID().call({from: accounts[0]});
+    console.log("artwork tokenID is: ", response);
+  }
 
-    // Update state with the result.
-    this.setState({ storageValue: response });
-  };
+  async handlegetArtworkSteward(){
+    // gets the steward from a deployed erc721 by using the getter function automatically created by sol
+    // if the artwork has not been minted / setup func not used, artwork will return an "empty" address
+    const { ercContract, accounts, contract } = this.state; 
+    const response = await ercContract.methods.steward().call({from: accounts[0]});
+    console.log("artwork steward is: ", response)
+  }
+
+  async handlegetArtworkAdress(){
+    // gets the adress from the deployed artwork that is currently stored in the state
+    const { ercContract, accounts, contract } = this.state; 
+    console.log("artwork adress is: ", ercContract._address)
+  }
+
+  async handlePennyWorthSubmit(event){
+    const { accounts, contract, web3 } = this.state; 
+    event.preventDefault();
+    console.log(this.state)
+    console.log("Creating PennyWorth Contract")
+    // Creating new contract instance -- not deployed yet
+    const newContract = new web3.eth.Contract(
+      PennyworthContract.abi);
+    // deploy this new contract to the network
+    const deployed = await newContract.deploy({data: PennyworthContract.bytecode, 
+      arguments: [this.state.artistAdress, this.state.artworkAdress, this.state.tokenID, this.state.patronage
+      ]}).send({from:accounts[0]})
+    console.log("PennyWorth deployed at: ", deployed._address)
+    // set the deployed artwork into the app state
+    this.setState({pennyContract: deployed})
+  }
+  async handlePennyWorthConnect(event){
+    // this connects to an existing Artwork / ERC Contract
+    event.preventDefault();
+    const { web3, accounts, contract, ercAdress } = this.state; 
+    console.log("passed contract adress: ", ercAdress)
+    // get current network 
+    const networkId = await web3.eth.net.getId();
+    // create artwork instance with that networkId and the Artwork adress, using the jsonInterface of the Artwork
+    const instance = new web3.eth.Contract(
+      ERC721.abi,
+      ercAdress,
+    );
+    // set the new instance 
+    this.setState({ercContract: instance})
+  }
+
+  async handlegetArtistAdress(){
+    // returns the adress of the artist associated with the pennyworth contract 
+    const { pennyContract, accounts, contract } = this.state; 
+    const response = await pennyContract.methods.artist().call({from: accounts[0]});
+    console.log("artist receiving patronage is: ", response)
+  }
+
+  async handlegetPatronage(){
+    // returns the patronage as percentage
+    const { pennyContract, accounts, contract } = this.state; 
+    const response = await pennyContract.methods.patronageNumerator().call({from: accounts[0]});
+    console.log("patronage is: ", response)
+  }
+
+  handlegetPennyAdress(){
+    // gets the adress from the deployed artwork that is currently stored in the state
+    console.log("trying to get pennyworth adress")
+    const { pennyContract, accounts, contract } = this.state; 
+    console.log("artwork adress is: ", pennyContract._address)
+  }
 
   render() {
     console.log("render");
@@ -113,20 +194,41 @@ class App extends Component {
     return (
       <div className="App">
         <h1>Welcome to this dapp!</h1>
-        <h2> This form will take an argument, transact it to the blockchain and display it</h2>
-        <div > Stored Argument: {this.state.storageValue}</div>
-        <div style={{marginBottom: '100px'}}>
-        <form onSubmit={this.handleSubmit}> 
-          <input type="text" value={this.state.newValue} onChange={this.handleChange.bind(this)}/>
-          <input type="submit" value="Submit"/>
+        <h2> This form will create the Artwork </h2>
+        <form onSubmit={this.handleArtworkSubmit}>
+        <input name="name" placeholder="name" value={this.state.name} onChange={this.handleChange}/>
+        <input name="tokenID" placeholder="tokenID" value={this.state.tokenID} onChange={this.handleChange}/>
+        <input name="symbol" placeholder="symbol" value={this.state.symbol} onChange={this.handleChange}/>
+        <input name="tokenURI" placeholder="token uri" value={this.state.tokenURI} onChange={this.handleChange}/>
+        <input type="submit" value="create contract"/>
         </form>
-        </div>
-        <h2> This form will create a new instance with the argument passed by the constructor</h2>
-        <div>
-        <form onSubmit={this.handleContractDeploymentSubmit}> 
-          <input type="submit" value="Submit"/>
+        <h2> If you want to connect to an existing Artwork, you can use this form instead</h2>
+        <form onSubmit={this.handleArtworkConnect}>
+        <input name="ercAdress" placeholder="Adress ERC Contract" value={this.state.ercAdress} onChange={this.handleChange}/>
+        <input type="submit" value="connect to contract"/>
         </form>
-        </div>
+        <h4> Methods to be called on the Artwork</h4>
+        <button onClick={() => this.handlegetArtworkInitStatus()}>get init status</button>
+        <button onClick={() => this.handlegetArtworkTokenId()}>get token id</button>
+        <button onClick={() => this.handlegetArtworkSteward()}>get artwork steward</button>
+        <button onClick={() => this.handlegetArtworkAdress()}>get artwork adress</button>
+        <h2> This form will create your PennyWorth Contract which controls the Artwork </h2>
+        <form onSubmit={this.handlePennyWorthSubmit}>
+        <input name="artistAdress" placeholder="Adress of the Artist" value={this.state.artistAdress} onChange={this.handleChange}/>
+        <input name="artworkAdress" placeholder="Adress of the Artwork" value={this.state.artworkAdress} onChange={this.handleChange}/>
+        <input name="patronage" placeholder="patronage in %" value={this.state.patronage} onChange={this.handleChange}/>
+        <input type="submit" value="create contract"/>
+        </form>
+        <h2> If you want to connect to an existing PennyWorth Contract, you can use this form instead</h2>
+        <form onSubmit={this.handleArtworkConnect}>
+        <input name="ercAdress" placeholder="Adress ERC Contract" value={this.state.ercAdress} onChange={this.handleChange}/>
+        <input type="submit" value="connect to contract"/>
+        </form>
+        <h4> Methods to be called on the Artwork</h4>
+        <button onClick={() => this.handlegetArtistAdress()}>get artist adress</button>
+        <button onClick={() => this.handlegetPatronage()}>get patronage</button>
+        <button onClick={() => this.handlegetArtworkAdress()}>get artwork adress</button>
+        <button onClick={() => this.handlegetPennyAdress()}>get PennyWorth adress</button>
 
       </div>
     );

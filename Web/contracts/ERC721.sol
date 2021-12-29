@@ -96,8 +96,9 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata, IERC721Enumerable {
 
     // tokenID of the contract to be passed at deployment 
     uint256 public tokenID;
+    string public initURI;
 
-    constructor(uint256 _tokenID, string name, string symbol, string _uri) public {
+    constructor(uint256  _tokenID, string memory name, string memory symbol, string memory _uri) public {
         // set tokenID to be used later on
         tokenID = _tokenID;
         // does not follow convention
