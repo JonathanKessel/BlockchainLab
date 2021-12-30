@@ -21,12 +21,18 @@ class App extends Component {
             artistAdress: "", 
             artworkAdress: "", 
             patronage: "",
+            pennyPrice: "",
+            newPrice: "",
+            newDeposit: "",
             };
 
   componentDidMount = async () => {
     try {
 
       // Binding functions
+      // this.handlegetPennyDeposit = this.handlegetPennyDeposit.bind(this)
+      this.handlePennyWorthBuy = this.handlePennyWorthBuy.bind(this)
+      this.handlegetPrice = this.handlegetPrice.bind(this)
       this.handlePennyWorthConnect = this.handlePennyWorthConnect.bind(this)
       this.handleArtworkConnect = this.handleArtworkConnect.bind(this)
       this.handlegetArtistAdress = this.handlegetArtistAdress.bind(this)
@@ -92,17 +98,20 @@ class App extends Component {
   async handleArtworkConnect(event){
     // this connects to an existing Artwork / ERC Contract
     event.preventDefault();
-    const { web3, accounts, contract, pennyAdress } = this.state; 
-    console.log("passed contract adress: ", pennyAdress)
+    const { web3, accounts, contract, ercAdress } = this.state; 
+    console.log("passed contract adress: ", ercAdress)
     // get current network 
     const networkId = await web3.eth.net.getId();
     // create artwork instance with that networkId and the Artwork adress, using the jsonInterface of the Artwork
     const instance = new web3.eth.Contract(
-      PennyworthContract.abi,
-      pennyAdress,
+      ERC721.abi,
+      ercAdress,
     );
     // set the new instance 
-    this.setState({pennyContract: instance})
+    this.setState({ercContract: instance})
+    // get info from new contract
+    // this.setState({tokenID: this.state.ercContract.tokenID})
+    // console.log(this.state.tokenID)
   }
 
   async handlegetArtworkInitStatus(){
@@ -148,21 +157,27 @@ class App extends Component {
     console.log("PennyWorth deployed at: ", deployed._address)
     // set the deployed artwork into the app state
     this.setState({pennyContract: deployed})
+    // Set the price to be displayed
+    const price = await this.handlegetPrice()
+    this.setState({pennyPrice: price})
   }
   async handlePennyWorthConnect(event){
     // this connects to an existing Artwork / ERC Contract
     event.preventDefault();
-    const { web3, accounts, contract, ercAdress } = this.state; 
-    console.log("passed contract adress: ", ercAdress)
+    const { web3, accounts, contract, pennyAdress } = this.state; 
+    console.log("passed penny adress: ", pennyAdress)
     // get current network 
     const networkId = await web3.eth.net.getId();
     // create artwork instance with that networkId and the Artwork adress, using the jsonInterface of the Artwork
     const instance = new web3.eth.Contract(
-      ERC721.abi,
-      ercAdress,
+      PennyworthContract.abi,
+      pennyAdress,
     );
     // set the new instance 
-    this.setState({ercContract: instance})
+    this.setState({pennyContract: instance})
+    // Set the price to be displayed
+    const price = await this.handlegetPrice()
+    this.setState({pennyPrice: price})
   }
 
   async handlegetArtistAdress(){
@@ -170,6 +185,8 @@ class App extends Component {
     const { pennyContract, accounts, contract } = this.state; 
     const response = await pennyContract.methods.artist().call({from: accounts[0]});
     console.log("artist receiving patronage is: ", response)
+    const price = await this.handlegetPrice()
+    console.log("price", price)
   }
 
   async handlegetPatronage(){
@@ -177,6 +194,32 @@ class App extends Component {
     const { pennyContract, accounts, contract } = this.state; 
     const response = await pennyContract.methods.patronageNumerator().call({from: accounts[0]});
     console.log("patronage is: ", response)
+  }
+
+  async handlegetPrice(){
+    const { pennyContract, accounts, contract } = this.state; 
+    const response = await pennyContract.methods.price().call({from: accounts[0]});
+    return response
+  }
+
+  async handlePennyWorthBuy(event){
+    event.preventDefault();
+    const { pennyContract, accounts, contract } = this.state; 
+    await pennyContract.methods.buy(this.state.newPrice, this.state.pennyPrice).send(
+      {from : accounts[0],
+       value: this.state.newDeposit
+      }
+    )
+    // Set the price to be displayed
+    const price = await this.handlegetPrice()
+    this.setState({pennyPrice: price})
+  }
+
+  async handlegetPennyDeposit(){
+    const { pennyContract, accounts, contract } = this.state; 
+    const response = await pennyContract.methods.deposit().call({from: accounts[0]});
+    return console.log("deposit: ", response)
+
   }
 
   handlegetPennyAdress(){
@@ -216,12 +259,13 @@ class App extends Component {
         <form onSubmit={this.handlePennyWorthSubmit}>
         <input name="artistAdress" placeholder="Adress of the Artist" value={this.state.artistAdress} onChange={this.handleChange}/>
         <input name="artworkAdress" placeholder="Adress of the Artwork" value={this.state.artworkAdress} onChange={this.handleChange}/>
+        <input name="tokenID" placeholder="tokenID" value={this.state.tokenID} onChange={this.handleChange}/>
         <input name="patronage" placeholder="patronage in %" value={this.state.patronage} onChange={this.handleChange}/>
         <input type="submit" value="create contract"/>
         </form>
         <h2> If you want to connect to an existing PennyWorth Contract, you can use this form instead</h2>
-        <form onSubmit={this.handleArtworkConnect}>
-        <input name="ercAdress" placeholder="Adress ERC Contract" value={this.state.ercAdress} onChange={this.handleChange}/>
+        <form onSubmit={this.handlePennyWorthConnect}>
+        <input name="pennyAdress" placeholder="Adress PennyWorth Contract" value={this.state.pennyAdress} onChange={this.handleChange}/>
         <input type="submit" value="connect to contract"/>
         </form>
         <h4> Methods to be called on the Artwork</h4>
@@ -229,7 +273,14 @@ class App extends Component {
         <button onClick={() => this.handlegetPatronage()}>get patronage</button>
         <button onClick={() => this.handlegetArtworkAdress()}>get artwork adress</button>
         <button onClick={() => this.handlegetPennyAdress()}>get PennyWorth adress</button>
-
+        <button onClick={() => this.handlegetPennyDeposit()}>get Penny Deposit adress</button>
+        <h3> This allows you to buy and sell an Artwork, connect to corresponding Pennyworth first</h3>
+        <form onSubmit={this.handlePennyWorthBuy}> 
+        <input id="price" type="text" value={"curr price: " + this.state.pennyPrice} readOnly></input>
+        <input name="newPrice" placeholder="buy price" value={this.state.newPrice} onChange={this.handleChange}/>
+        <input name="newDeposit" placeholder="deposit" value={this.state.newDeposit} onChange={this.handleChange}/>
+        <input type="submit" value="buy Artwork"/>
+        </form>
       </div>
     );
   }

@@ -36,8 +36,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"x\",\"type\":\"string\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"get\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"x\",\"type\":\"string\"}],\"name\":\"set\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/SimpleStorage.sol\":\"SimpleStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/SimpleStorage.sol\":{\"keccak256\":\"0x06683e2449053017179dde4da51fa0570d0565eb5b20106bc4de5d97bb1d5300\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://7b7a4d7acd194c7f61d79af75fd2f886b240d0295e9937502eaeae06f62cec80\",\"dweb:/ipfs/QmSdbQrpeuhAZXVzLnymucwdLCx9FYxx2UYhyAxMaQRYQc\"]}},\"version\":1}",
@@ -47,7 +46,7 @@
   "sourceMap": "61:278:4:-:0;;;115:64;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;170:1;157:10;:14;;;;;;;;;;;;:::i;:::-;;115:64;61:278;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;",
   "deployedSourceMap": "61:278:4:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;185:64;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;255:81;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;185:64;242:1;229:10;:14;;;;;;;;;;;;:::i;:::-;;185:64;:::o;255:81::-;291:13;320:10;313:17;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;255:81;:::o;-1:-1:-1:-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;:::o",
   "source": "// SPDX-License-Identifier: MIT\r\npragma solidity  ^0.6.0;\r\n\r\ncontract SimpleStorage {\r\n  string storedData;\r\n\r\n\r\n  constructor(string memory x) public{\r\n    storedData = x;\r\n\r\n  }\r\n\r\n  function set(string memory x) public {\r\n    storedData = x;\r\n  }\r\n\r\n  function get() public view returns (string memory) {\r\n    return storedData;\r\n  }\r\n}\r\n",
-  "sourcePath": "C:\\Users\\Jonathan\\Desktop\\Kurse_HDM_7_Semester\\Blockchain Lab\\BlockchainLab\\Web\\contracts\\SimpleStorage.sol",
+  "sourcePath": "C:\\Users\\Jonathan\\BlockchainLab\\BlockchainLab\\Web\\contracts\\SimpleStorage.sol",
   "ast": {
     "absolutePath": "project:/contracts/SimpleStorage.sol",
     "exportedSymbols": {
@@ -868,8 +867,7 @@
     }
   },
   "schemaVersion": "3.4.4",
-  "updatedAt": "2021-12-29T10:41:09.795Z",
-  "networkType": "ethereum",
+  "updatedAt": "2021-12-30T13:23:28.331Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},
