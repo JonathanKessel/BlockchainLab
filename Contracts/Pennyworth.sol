@@ -224,7 +224,7 @@ contract PennyWorth{
         address currentOwner = art.ownerOf(tokenID);
 
         uint256 totalToPayBack = price.add(deposit);
-        if(totalToPayBack > 0) { // this won't execute if steward owns it. price = 0. deposit = 0.
+        if(totalToPayBack > 0) { // this won't execute if PennyWorth owns it. price = 0. deposit = 0.
             // pay previous owner their price + deposit back.
             address payable payableCurrentOwner = address(uint160(currentOwner));
             bool transferSuccess = payableCurrentOwner.send(totalToPayBack);
@@ -308,7 +308,7 @@ contract PennyWorth{
         }
 
         else if(deposit == 0) {
-            // become steward of artwork (aka foreclose)
+            // become Pennyworth of artwork (aka foreclose)
             address currentOwner = art.ownerOf(tokenID);
             transferArtworkTo(currentOwner, address(this), 0);
             emit LogForeclosure(currentOwner);
