@@ -24,6 +24,7 @@ class App extends Component {
             pennyPrice: "",
             newPrice: "",
             newDeposit: "",
+            fileupload: "",
             };
 
   componentDidMount = async () => {
@@ -229,6 +230,18 @@ class App extends Component {
     console.log("artwork adress is: ", pennyContract._address)
   }
 
+  //async uploadFile(){
+    //let formData = new FormData();           
+    //formData.append("file", fileupload.files[0]);
+    //await fetch('/upload.php', {
+      //method: "POST", 
+      //body: formData
+    //});    
+    //alert('The file has been uploaded successfully.');
+  //}
+  
+  
+
   render() {
     console.log("render");
     if (!this.state.web3) {
@@ -243,6 +256,7 @@ class App extends Component {
         <input name="tokenID" placeholder="tokenID" value={this.state.tokenID} onChange={this.handleChange}/>
         <input name="symbol" placeholder="symbol" value={this.state.symbol} onChange={this.handleChange}/>
         <input name="tokenURI" placeholder="token uri" value={this.state.tokenURI} onChange={this.handleChange}/>
+        <input id="fileupload" type="file" name="fileupload" />
         <input type="submit" value="create contract"/>
         </form>
         <h2> If you want to connect to an existing Artwork, you can use this form instead</h2>
