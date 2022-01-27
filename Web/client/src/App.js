@@ -77,16 +77,6 @@ class App extends Component {
       // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
 
-      // LEGACY ----
-      // Get the contract instance.
-      // const networkId = await web3.eth.net.getId();
-      // const deployedNetwork = SimpleStorageContract.networks[networkId];
-      // Contract is called by JSON interface, [, adress] [, options]
-      //const instance = new web3.eth.Contract(
-      //  SimpleStorageContract.abi,
-      //  deployedNetwork && deployedNetwork.address,
-      //); ----
-
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
       this.setState({ web3, accounts, });
@@ -106,7 +96,6 @@ class App extends Component {
 
   async handleInfuraUpload(event) {
     const file = event.target.files[0]
-    // const file = this.state.file
 
     try {
       const added = await client.add(file)
@@ -159,7 +148,6 @@ class App extends Component {
     // set the new instance 
     this.setState({ ercContract: instance })
     // get info from new contract
-    // this.setState({tokenID: this.state.ercContract.tokenID})
     console.log("TokenID of connected Artwork :", this.state.tokenID)
     this.handlegetArtworkInitStatus()
     this.handlegetArtworkTokenId()
@@ -232,9 +220,7 @@ class App extends Component {
     // set the deployed artwork into the app state
     console.log("state pennyContract: ", this.state.pennyContractAdress)
     this.setState({ pennyContract: deployed })
-
-    // Set the price to be displayed REMOVE
-    //  const price = await this.handlegetPrice() REMOVE
+    
     // show Alert with processing meta data
     this.setState({ alertVisibilityForm3: true });
   }
