@@ -6,50 +6,51 @@ import getWeb3 from './getWeb3';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import { Alert, Form, Button, Container, Row, Col, InputGroup, ButtonGroup, Table } from 'react-bootstrap';
-import { create as ipfsHttpClient} from 'ipfs-http-client'
+import { create as ipfsHttpClient } from 'ipfs-http-client'
 
 /* Create an instance of the client */
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0')
 
 class App extends Component {
-  state = { storageValue: "", 
-            web3: {}, 
-            accounts: {}, 
-            pennyContract: {}, //or set to null, still need to figure out whats better
-            pennyContractAdress: '',
-            pennyPatronage: '',
-            pennyArtistAdress: '',
-            pennyDeposit: '',
-            pennyPrice: '',         
-            ercContract: {},
-            ercAdress: '', 
-            pennyAdress: '',
-            name: "", 
-            tokenID: "",
-            tokenURI: "", 
-            symbol: "",
-            artistAdress: "", 
-            artworkAdress: "",
-            connectedPennyWorthArtworkAdress: '',
-            connectedPennyWorthPennyAdress: '',
-            connectedPennyWorthArtistAdress: '',
-            artworkInitStatus: false,
-            artworkTokenID: "",
-            artworkSteward: "",
-            patronage: "",
-            newPrice: "",
-            newDeposit: "",
-            fileURL: '',
-            file: {},
-            alertVisibilityForm1: false,
-            alertVisibilityForm2: false,
-            alertVisibilityForm3: false,
-            alertVisibilityForm4: false,
-            alertVisibilityForm5: false,
-            Form1Loader:false,
-            Form3Loader:false,
-            Form5Loader:false,
-            };
+  state = {
+    storageValue: "",
+    web3: {},
+    accounts: {},
+    pennyContract: {}, //or set to null, still need to figure out whats better
+    pennyContractAdress: '',
+    pennyPatronage: '',
+    pennyArtistAdress: '',
+    pennyDeposit: '',
+    pennyPrice: '',
+    ercContract: {},
+    ercAdress: '',
+    pennyAdress: '',
+    name: "",
+    tokenID: "",
+    tokenURI: "",
+    symbol: "",
+    artistAdress: "",
+    artworkAdress: "",
+    connectedPennyWorthArtworkAdress: '',
+    connectedPennyWorthPennyAdress: '',
+    connectedPennyWorthArtistAdress: '',
+    artworkInitStatus: false,
+    artworkTokenID: "",
+    artworkSteward: "",
+    patronage: "",
+    newPrice: "",
+    newDeposit: "",
+    fileURL: '',
+    file: {},
+    alertVisibilityForm1: false,
+    alertVisibilityForm2: false,
+    alertVisibilityForm3: false,
+    alertVisibilityForm4: false,
+    alertVisibilityForm5: false,
+    Form1Loader: false,
+    Form3Loader: false,
+    Form5Loader: false,
+  };
 
   componentDidMount = async () => {
     try {
@@ -65,7 +66,7 @@ class App extends Component {
       this.handlegetArtworkSteward = this.handlegetArtworkSteward.bind(this)
       this.handlegetArtworkTokenId = this.handlegetArtworkTokenId.bind(this)
       this.handlegetArtworkInitStatus = this.handlegetArtworkInitStatus.bind(this)
-      this.handleChange = this.handleChange.bind(this); 
+      this.handleChange = this.handleChange.bind(this);
       this.handleArtworkSubmit = this.handleArtworkSubmit.bind(this);
       this.handlePennyWorthSubmit = this.handlePennyWorthSubmit.bind(this);
       this.handleInfuraUpload = this.handleInfuraUpload.bind(this);
@@ -98,19 +99,19 @@ class App extends Component {
     }
   };
 
-  handleChange(event){
-    
-    this.setState({[event.target.name] : event.target.value})
+  handleChange(event) {
+
+    this.setState({ [event.target.name]: event.target.value })
   }
-  
-  async handleInfuraUpload (event) {
+
+  async handleInfuraUpload(event) {
     const file = event.target.files[0]
-   // const file = this.state.file
+    // const file = this.state.file
 
     try {
       const added = await client.add(file)
       const url = `https://ipfs.infura.io/ipfs/${added.path}`
-      this.setState({fileURL : url});
+      this.setState({ fileURL: url });
       console.log(url);
       console.log(this.state.fileURL)
     } catch (error) {
@@ -120,33 +121,35 @@ class App extends Component {
 
   async handleArtworkSubmit(event) {
     // set Form loader to "creating" alias spinning
-    this.setState({Form1Loader:true})
+    this.setState({ Form1Loader: true })
     // this function generates the ERC721 contract from which the can be minted
     event.preventDefault();
-    
-    const { accounts, web3 } = this.state; 
+
+    const { accounts, web3 } = this.state;
     console.log("Creating Artwork / Deploying ERC721 contract")
     console.log(this.state);
     const newContract = new web3.eth.Contract(
       ERC721.abi);
     // deploy this new contract alias asset to the network
-    const deployed = await newContract.deploy({data: ERC721.bytecode, 
+    const deployed = await newContract.deploy({
+      data: ERC721.bytecode,
       arguments: [this.state.tokenID, this.state.name, this.state.symbol, this.state.fileURL
-      ]}).send({from:accounts[0]})
+      ]
+    }).send({ from: accounts[0] })
 
     console.log("ERC721 deployed at: ", deployed._address)
-    this.setState({Form1Loader:false})
+    this.setState({ Form1Loader: false })
     // set the deployed artwork into the app state
-    this.setState({ercContract: deployed})
-    this.setState({ercAdress: deployed._address})
+    this.setState({ ercContract: deployed })
+    this.setState({ ercAdress: deployed._address })
     // show Alert with processing meta data
-    this.setState({alertVisibilityForm1:true})
+    this.setState({ alertVisibilityForm1: true })
   }
 
-  async handleArtworkConnect(event){
+  async handleArtworkConnect(event) {
     // this connects to an existing Artwork / ERC Contract
     event.preventDefault();
-    const { web3, ercAdress } = this.state; 
+    const { web3, ercAdress } = this.state;
     console.log("passed contract adress: ", ercAdress)
     // create artwork instance with that networkId and the Artwork adress, using the jsonInterface of the Artwork
     const instance = new web3.eth.Contract(
@@ -154,62 +157,62 @@ class App extends Component {
       ercAdress,
     );
     // set the new instance 
-    this.setState({ercContract: instance})
+    this.setState({ ercContract: instance })
     // get info from new contract
     // this.setState({tokenID: this.state.ercContract.tokenID})
     console.log("TokenID of connected Artwork :", this.state.tokenID)
     this.handlegetArtworkInitStatus()
     this.handlegetArtworkTokenId()
     this.handlegetArtworkSteward()
-    this.handlegetArtworkAdress() 
+    this.handlegetArtworkAdress()
     // show Alert with processing meta data
-    this.setState({alertVisibilityForm2:true});
+    this.setState({ alertVisibilityForm2: true });
   }
 
-  async handleStewardInputTransfer(){
+  async handleStewardInputTransfer() {
     // transfers the Steward-Variable after into the Input field from the pennyworth-contract-connect-field after trigger through button-submit
     // get steward from state
-    const { artworkSteward } = this.state; 
+    const { artworkSteward } = this.state;
     // prefill pennyAdress-State with steward-Adress
-    this.setState({pennyAdress: artworkSteward})
+    this.setState({ pennyAdress: artworkSteward })
   }
 
-  async handlegetArtworkInitStatus(){
+  async handlegetArtworkInitStatus() {
     // gets the init status from a deployed erc721 by using the getter function automatically created by sol
-    const { ercContract, accounts } = this.state; 
-    const response = await ercContract.methods.init().call({from: accounts[0]});
-    this.setState({artworkInitStatus: response});
+    const { ercContract, accounts } = this.state;
+    const response = await ercContract.methods.init().call({ from: accounts[0] });
+    this.setState({ artworkInitStatus: response });
     console.log("artwork status is: ", response);
   }
 
-  async handlegetArtworkTokenId(){
+  async handlegetArtworkTokenId() {
     // gets the tokenID from a deployed erc721 by using the getter function automatically created by sol
-    const { ercContract, accounts } = this.state; 
-    const response = await ercContract.methods.tokenID().call({from: accounts[0]});
-    this.setState({artworkTokenID: response}); //store TokenID in separete State value. Redundant Information in ercContract-State-Object, but will work temporarily
+    const { ercContract, accounts } = this.state;
+    const response = await ercContract.methods.tokenID().call({ from: accounts[0] });
+    this.setState({ artworkTokenID: response }); //store TokenID in separete State value. Redundant Information in ercContract-State-Object, but will work temporarily
     console.log("artwork tokenID is: ", response);
   }
 
-  async handlegetArtworkSteward(){
+  async handlegetArtworkSteward() {
     // gets the steward from a deployed erc721 by using the getter function automatically created by sol
     // if the artwork has not been minted / setup func not used, artwork will return an "empty" address
-    const { ercContract, accounts } = this.state; 
-    const response = await ercContract.methods.steward().call({from: accounts[0]});
+    const { ercContract, accounts } = this.state;
+    const response = await ercContract.methods.steward().call({ from: accounts[0] });
     console.log("artwork steward is: ", response)
-    this.setState({artworkSteward: response}); //store artworkSteward in separete State value. Redundant Information in ercContract-State-Object, but will work temporarily
+    this.setState({ artworkSteward: response }); //store artworkSteward in separete State value. Redundant Information in ercContract-State-Object, but will work temporarily
   }
 
-  async handlegetArtworkAdress(){
+  async handlegetArtworkAdress() {
     // gets the adress from the deployed artwork that is currently stored in the state
-    const { ercContract } = this.state; 
+    const { ercContract } = this.state;
     console.log("connected artwork adress is: ", ercContract._address)
-    this.setState({connectedArtworkAdress: ercContract._address}); // store ercAdress in separate State value. Redundant Information in ercContract-State-Object, but will work temporarily
-    this.setState({connectedPennyWorthArtworkAdress: ercContract._address});
+    this.setState({ connectedArtworkAdress: ercContract._address }); // store ercAdress in separate State value. Redundant Information in ercContract-State-Object, but will work temporarily
+    this.setState({ connectedPennyWorthArtworkAdress: ercContract._address });
   }
 
-  async handlePennyWorthSubmit(event){
-    this.setState({Form3Loader:true})
-    const { accounts, web3 } = this.state; 
+  async handlePennyWorthSubmit(event) {
+    this.setState({ Form3Loader: true })
+    const { accounts, web3 } = this.state;
     event.preventDefault();
     console.log(this.state)
     console.log("Creating PennyWorth Contract")
@@ -217,26 +220,28 @@ class App extends Component {
     const newContract = new web3.eth.Contract(
       PennyworthContract.abi);
     // deploy this new contract to the network
-    const deployed = await newContract.deploy({data: PennyworthContract.bytecode, 
+    const deployed = await newContract.deploy({
+      data: PennyworthContract.bytecode,
       arguments: [this.state.artistAdress, this.state.artworkAdress, this.state.tokenID, this.state.patronage
-      ]}).send({from:accounts[0]})
-    this.setState({Form3Loader:true})
+      ]
+    }).send({ from: accounts[0] })
+    this.setState({ Form3Loader: true })
     console.log("deployed state after pennyworth deployment", deployed)
     console.log("PennyWorth deployed at: ", deployed._address)
-    this.setState({pennyContractAdress: deployed._address})
+    this.setState({ pennyContractAdress: deployed._address })
     // set the deployed artwork into the app state
     console.log("state pennyContract: ", this.state.pennyContractAdress)
-    this.setState({pennyContract: deployed})
+    this.setState({ pennyContract: deployed })
 
     // Set the price to be displayed REMOVE
-  //  const price = await this.handlegetPrice() REMOVE
+    //  const price = await this.handlegetPrice() REMOVE
     // show Alert with processing meta data
-    this.setState({alertVisibilityForm3:true});
+    this.setState({ alertVisibilityForm3: true });
   }
-  async handlePennyWorthConnect(event){
+  async handlePennyWorthConnect(event) {
     // this connects to an existing Artwork / ERC Contract
     event.preventDefault();
-    const { web3, pennyAdress } = this.state; 
+    const { web3, pennyAdress } = this.state;
     console.log("passed penny adress: ", pennyAdress)
     // get current network 
     // create artwork instance with that networkId and the Artwork adress, using the jsonInterface of the Artwork
@@ -245,7 +250,7 @@ class App extends Component {
       pennyAdress,
     );
     // set the new instance 
-    this.setState({pennyContract: instance})
+    this.setState({ pennyContract: instance })
     // Set the price to be displayed
     this.handlegetPrice()
 
@@ -257,65 +262,66 @@ class App extends Component {
     this.handlegetPennyDeposit()
 
     // show Alert with processing meta data
-    this.setState({alertVisibilityForm4:true});
+    this.setState({ alertVisibilityForm4: true });
   }
 
-  async handlegetArtistAdress(){
+  async handlegetArtistAdress() {
     // returns the adress of the artist associated with the pennyworth contract 
-    const { pennyContract, accounts } = this.state; 
-    const response = await pennyContract.methods.artist().call({from: accounts[0]});
+    const { pennyContract, accounts } = this.state;
+    const response = await pennyContract.methods.artist().call({ from: accounts[0] });
     console.log("Connected PennyworthContract -- Artist receiving patronage is: ", response)
-    this.setState({connectedPennyWorthArtistAdress: response})
+    this.setState({ connectedPennyWorthArtistAdress: response })
     const price = await this.handlegetPrice()
     console.log("price", price)
   }
 
-  async handlegetPatronage(){
+  async handlegetPatronage() {
     // returns the patronage as percentage
-    const { pennyContract, accounts } = this.state; 
-    const response = await pennyContract.methods.patronageNumerator().call({from: accounts[0]});
-    this.setState({pennyPatronage: response})
+    const { pennyContract, accounts } = this.state;
+    const response = await pennyContract.methods.patronageNumerator().call({ from: accounts[0] });
+    this.setState({ pennyPatronage: response })
     console.log("patronage is: ", response)
   }
 
-  async handlegetPrice(){
-    const { pennyContract, accounts } = this.state; 
-    const response = await pennyContract.methods.price().call({from: accounts[0]});
-    this.setState({pennyPrice: response})
-    console.log("set State pennyprice to: " , response)
+  async handlegetPrice() {
+    const { pennyContract, accounts } = this.state;
+    const response = await pennyContract.methods.price().call({ from: accounts[0] });
+    this.setState({ pennyPrice: response })
+    console.log("set State pennyprice to: ", response)
   }
 
-  async handlePennyWorthBuy(event){
+  async handlePennyWorthBuy(event) {
     event.preventDefault();
-    this.setState({Form5Loader:true})
-    const { pennyContract, accounts } = this.state; 
+    this.setState({ Form5Loader: true })
+    const { pennyContract, accounts } = this.state;
     await pennyContract.methods.buy(this.state.newPrice, this.state.pennyPrice).send(
-      {from : accounts[0],
+      {
+        from: accounts[0],
         value: this.state.newDeposit
       }
     )
     // Set the price to be displayed
     this.handlegetPrice()
-    this.setState({Form5Loader:false})
-    this.setState({alertVisibilityForm5:true})
+    this.setState({ Form5Loader: false })
+    this.setState({ alertVisibilityForm5: true })
   }
 
-  async handlegetPennyDeposit(){
-    const { pennyContract, accounts } = this.state; 
-    const response = await pennyContract.methods.deposit().call({from: accounts[0]});
-    this.setState({pennyDeposit: response})
+  async handlegetPennyDeposit() {
+    const { pennyContract, accounts } = this.state;
+    const response = await pennyContract.methods.deposit().call({ from: accounts[0] });
+    this.setState({ pennyDeposit: response })
     return console.log("deposit: ", response)
   }
 
-  handlegetPennyAdress(){
+  handlegetPennyAdress() {
     // gets the adress from the deployed artwork that is currently stored in the state
     console.log("trying to get pennyworth adress")
     const { pennyContract } = this.state;
-    this.setState({connectedPennyWorthPennyAdress: pennyContract._address})
+    this.setState({ connectedPennyWorthPennyAdress: pennyContract._address })
     console.log("artwork adress is: ", pennyContract._address)
   }
-  
-  onDismissAlert = ()=>{
+
+  onDismissAlert = () => {
     this.setState({
       alertVisibilityForm1: false,
       alertVisibilityForm2: false,
@@ -332,11 +338,11 @@ class App extends Component {
           <Alert variant="info">
             <Alert.Heading>Preparing Environment</Alert.Heading>
             <p>
-            <span aria-label="Emoji" role="img">🚧</span> Loading Web3, accounts, and contract ...
+              <span aria-label="Emoji" role="img">🚧</span> Loading Web3, accounts, and contract ...
             </p>
             <hr />
             <p className="mb-0">
-            Make sure to enable the MetaMask Extension in your Browser and grant this site access to your IDs.
+              Make sure to enable the MetaMask Extension in your Browser and grant this site access to your IDs.
             </p>
           </Alert>
         </div>
@@ -353,9 +359,9 @@ class App extends Component {
               </a>
             </div>
           </Row>
-            <div className="d-flex align-items-center pb-3 mb-5 border-bottom">
-              <p>Manage your NFT Assets based on Harberger Tax Model with this Web application.</p>
-            </div>
+          <div className="d-flex align-items-center pb-3 mb-5 border-bottom">
+            <p>Manage your NFT Assets based on Harberger Tax Model with this Web application.</p>
+          </div>
           <Row className="mb-2 mt-2">
             <Col className="p-5 mx-2 border rounded">
               <h2>Create a new Artwork</h2>
@@ -363,39 +369,39 @@ class App extends Component {
                 <Form.Group as={Row} className="mb-3 mt-5" controlId="formCreateNewArtworkName">
                   <Form.Label column sm={2}>Name</Form.Label>
                   <Col sm={10}>
-                    <Form.Control name="name" type="text" placeholder="my Awesome Artwork" value={this.state.name} onChange={this.handleChange}/>
-                    </Col>
+                    <Form.Control name="name" type="text" placeholder="my Awesome Artwork" value={this.state.name} onChange={this.handleChange} />
+                  </Col>
                 </Form.Group>
                 <Form.Group as={Row} className="mb-3" controlId="formCreateNewArtworkTokenID">
                   <Form.Label column sm={2}>Token ID</Form.Label>
                   <Col sm={10}>
-                  <Form.Control name="tokenID" type="number" placeholder="1234567890" value={this.state.tokenID} onChange={this.handleChange}/></Col>
+                    <Form.Control name="tokenID" type="number" placeholder="1234567890" value={this.state.tokenID} onChange={this.handleChange} /></Col>
                 </Form.Group>
                 <Form.Group as={Row} className="mb-3" controlId="formCreateNewArtworkSymbol">
                   <Form.Label column sm={2}>Symbol</Form.Label>
                   <Col sm={10}>
-                  <Form.Control name="symbol" type="text" placeholder="symbol" value={this.state.symbol} onChange={this.handleChange}/></Col>
+                    <Form.Control name="symbol" type="text" placeholder="symbol" value={this.state.symbol} onChange={this.handleChange} /></Col>
                 </Form.Group>
                 <Form.Group as={Row} className="mb-3" controlId="formCreateNewArtworkFile">
                   <Form.Label column sm={2}>Artwork-File</Form.Label>
                   <Col sm={10}>
-                  <Form.Control name="file" type="file" onChange={(e) => this.handleInfuraUpload(e)} required /></Col>
+                    <Form.Control name="file" type="file" onChange={(e) => this.handleInfuraUpload(e)} required /></Col>
                 </Form.Group>
                 <Button variant="primary" size="lg" type="submit" className="mb-3 mt-3" disabled={this.state.Form1Loader}>
-                {this.state.Form1Loader ? 'Creating Artwork ...' : 'Create new Artwork'}
+                  {this.state.Form1Loader ? 'Creating Artwork ...' : 'Create new Artwork'}
                 </Button>
               </Form>
-              <Alert className="mb-5" variant="success" show={this.state.alertVisibilityForm1} onClose={()=>{this.onDismissAlert()}} dismissible>
+              <Alert className="mb-5" variant="success" show={this.state.alertVisibilityForm1} onClose={() => { this.onDismissAlert() }} dismissible>
                 <Alert.Heading>Artwork successfully created.</Alert.Heading>
                 <hr />
                 ERC 721 deployed to Test-Network Goerli at <code>{this.state.ercAdress}</code>
                 <ButtonGroup>
-                <Button variant="secondary" size="sm" type="submit" className="m-2" href={this.state.fileURL}>
-                View on IPFS <span aria-label="Image" role="img">🖼</span>
-                </Button>
-                <Button variant="secondary" size="sm" type="submit" className="m-2" href={"https://goerli.etherscan.io/address/" + this.state.ercAdress}>
-                View on Explorer <span aria-label="Search" role="img">🔍</span>
-                </Button>
+                  <Button variant="secondary" size="sm" type="submit" className="m-2" href={this.state.fileURL}>
+                    View on IPFS <span aria-label="Image" role="img">🖼</span>
+                  </Button>
+                  <Button variant="secondary" size="sm" type="submit" className="m-2" href={"https://goerli.etherscan.io/address/" + this.state.ercAdress}>
+                    View on Explorer <span aria-label="Search" role="img">🔍</span>
+                  </Button>
                 </ButtonGroup>
               </Alert>
             </Col>
@@ -407,13 +413,13 @@ class App extends Component {
                   <Col sm={10}>
                     <Form.Control name="ercAdress" type="text" placeholder="0xdd82D48E91C2944ceC6973a5b9f9a646C711d5EF" value={this.state.ercAdress} onChange={this.handleChange} required />
                     <Form.Text className="text-muted">ercAdress</Form.Text>
-                    </Col>
+                  </Col>
                 </Form.Group>
                 <Button variant="primary" size="lg" type="submit" className="mb-3 mt-3">
                   Connect to existing Artwork
                 </Button>
               </Form>
-              <Alert className="mb-5" variant="success" show={this.state.alertVisibilityForm2} onClose={()=>{this.onDismissAlert()}} dismissible>
+              <Alert className="mb-5" variant="success" show={this.state.alertVisibilityForm2} onClose={() => { this.onDismissAlert() }} dismissible>
                 <Alert.Heading>Connection established!</Alert.Heading>
                 <hr />
                 <p className="m-3">
@@ -446,178 +452,178 @@ class App extends Component {
             </Col>
           </Row>
           <Row className="pb-3 mb-5 pt-3">
-          <Col className="p-5 mx-2 border rounded">
-          <h2>Create your PennyWorth Contract which controls the Artwork</h2>
-          <Form onSubmit={this.handlePennyWorthSubmit}>
-            <Form.Group as={Row} className="mb-3 mt-5" controlId="formCreateNewPWContractArtistAdress">
-              <Form.Label column sm={3}>Artist-Address</Form.Label>
-              <Col sm={9}>
-                <Form.Control name="artistAdress" type="text" placeholder="0x06012c8cf97BEaD5deAe237070F9587f8E7A266d" value={this.state.artistAdress} onChange={this.handleChange} required/>
-                <Form.Text className="text-muted">adress of the artist who receives the patronage</Form.Text>
-                </Col>
-            </Form.Group>
-            <Form.Group as={Row} className="mb-3" controlId="formCreateNewPWContractARtworkAddress">
-              <Form.Label column sm={3}>Artwork-Address</Form.Label>
-              <Col sm={9}>
-              <Form.Control name="artworkAdress" type="text" placeholder="0x06012c8cf97BEaD5deAe237070F9587f8E7A266d" value={this.state.artworkAdress} onChange={this.handleChange} required/></Col>
-            </Form.Group>
-            <Form.Group as={Row} className="mb-3" controlId="formCreateNewPWContractTokenID">
-              <Form.Label column sm={3}>Token ID</Form.Label>
-              <Col sm={9}>
-              <Form.Control name="tokenID" type="number" placeholder="8313155112" value={this.state.tokenID} onChange={this.handleChange} required/></Col>
-            </Form.Group>
-            <Form.Group as={Row} className="mb-3" controlId="formCreateNewPWContractPatronage">
-              <Form.Label column sm={3}>Patronage</Form.Label>
-              <Col sm={9}>
-              <InputGroup>
-                <Form.Control name="patronage" type="number" placeholder="5" value={this.state.patronage} onChange={this.handleChange} required aria-label="Patronage in %" />
-                <InputGroup.Text>%</InputGroup.Text>
-              </InputGroup>
-              </Col>
-            </Form.Group>
-            <Button variant="primary" size="lg" type="submit" className="mb-3 mt-3" disabled={this.state.Form3Loader}>
-                {this.state.Form3Loader ? 'Creating Contract ...' : 'Create Pennyworth Contract'}
+            <Col className="p-5 mx-2 border rounded">
+              <h2>Create your PennyWorth Contract which controls the Artwork</h2>
+              <Form onSubmit={this.handlePennyWorthSubmit}>
+                <Form.Group as={Row} className="mb-3 mt-5" controlId="formCreateNewPWContractArtistAdress">
+                  <Form.Label column sm={3}>Artist-Address</Form.Label>
+                  <Col sm={9}>
+                    <Form.Control name="artistAdress" type="text" placeholder="0x06012c8cf97BEaD5deAe237070F9587f8E7A266d" value={this.state.artistAdress} onChange={this.handleChange} required />
+                    <Form.Text className="text-muted">adress of the artist who receives the patronage</Form.Text>
+                  </Col>
+                </Form.Group>
+                <Form.Group as={Row} className="mb-3" controlId="formCreateNewPWContractARtworkAddress">
+                  <Form.Label column sm={3}>Artwork-Address</Form.Label>
+                  <Col sm={9}>
+                    <Form.Control name="artworkAdress" type="text" placeholder="0x06012c8cf97BEaD5deAe237070F9587f8E7A266d" value={this.state.artworkAdress} onChange={this.handleChange} required /></Col>
+                </Form.Group>
+                <Form.Group as={Row} className="mb-3" controlId="formCreateNewPWContractTokenID">
+                  <Form.Label column sm={3}>Token ID</Form.Label>
+                  <Col sm={9}>
+                    <Form.Control name="tokenID" type="number" placeholder="8313155112" value={this.state.tokenID} onChange={this.handleChange} required /></Col>
+                </Form.Group>
+                <Form.Group as={Row} className="mb-3" controlId="formCreateNewPWContractPatronage">
+                  <Form.Label column sm={3}>Patronage</Form.Label>
+                  <Col sm={9}>
+                    <InputGroup>
+                      <Form.Control name="patronage" type="number" placeholder="5" value={this.state.patronage} onChange={this.handleChange} required aria-label="Patronage in %" />
+                      <InputGroup.Text>%</InputGroup.Text>
+                    </InputGroup>
+                  </Col>
+                </Form.Group>
+                <Button variant="primary" size="lg" type="submit" className="mb-3 mt-3" disabled={this.state.Form3Loader}>
+                  {this.state.Form3Loader ? 'Creating Contract ...' : 'Create Pennyworth Contract'}
                 </Button>
-          </Form>
-          <Alert className="mb-5" variant="success" show={this.state.alertVisibilityForm3} onClose={()=>{this.onDismissAlert()}} dismissible>
-            <Alert.Heading>Pennyworth Contract successfully created.</Alert.Heading>
-            <hr />
-            <p className="m-2">
-            Pennyworth-Contract deployed to Test-Network Goerli at <code>{this.state.pennyContractAdress}</code> with price <code>{this.state.pennyPrice}</code></p>
-            <p className="m-2">
-            <ButtonGroup>
-              <Button variant="secondary" size="sm" type="submit" className="m-2" href={"https://goerli.etherscan.io/address/" + this.state.pennyContractAdress}>
-              View on Explorer <span aria-label="Search-Icon" role="img">🔍</span>
-              </Button>
-            </ButtonGroup>
-            </p>
-          </Alert>
-          </Col>
-          <Col className="p-5 mx-2 border rounded">
-          <h2>Connect to an existing PennyWorth Contract</h2>
-          <Form onSubmit={this.handlePennyWorthConnect}>
-            <Form.Group as={Row} className="mb-3 mt-5" controlId="formConnectExistingPWPWAdress">
-              <Form.Label column sm={3}>Pennyworth-Address</Form.Label>
-              <Col sm={9}>
-                <Form.Control name="pennyAdress" type="text" placeholder="0x06012c8cf97BEaD5deAe237070F9587f8E7A266d" value={this.state.pennyAdress} onChange={this.handleChange} required/>
-                </Col>
-            </Form.Group>
-            <Button variant="primary" size="lg" type="submit" className="mb-3 mt-3">
-              Connect to existing Pennyworth Contract
-            </Button>
-          </Form>
-          <Alert className="mb-5" variant="success" show={this.state.alertVisibilityForm4} onClose={()=>{this.onDismissAlert()}} dismissible>
-            <Alert.Heading>Connection established!</Alert.Heading>
-            <hr />
-            <p className="m-3">
+              </Form>
+              <Alert className="mb-5" variant="success" show={this.state.alertVisibilityForm3} onClose={() => { this.onDismissAlert() }} dismissible>
+                <Alert.Heading>Pennyworth Contract successfully created.</Alert.Heading>
+                <hr />
+                <p className="m-2">
+                  Pennyworth-Contract deployed to Test-Network Goerli at <code>{this.state.pennyContractAdress}</code> with price <code>{this.state.pennyPrice}</code></p>
+                <p className="m-2">
+                  <ButtonGroup>
+                    <Button variant="secondary" size="sm" type="submit" className="m-2" href={"https://goerli.etherscan.io/address/" + this.state.pennyContractAdress}>
+                      View on Explorer <span aria-label="Search-Icon" role="img">🔍</span>
+                    </Button>
+                  </ButtonGroup>
+                </p>
+              </Alert>
+            </Col>
+            <Col className="p-5 mx-2 border rounded">
+              <h2>Connect to an existing PennyWorth Contract</h2>
+              <Form onSubmit={this.handlePennyWorthConnect}>
+                <Form.Group as={Row} className="mb-3 mt-5" controlId="formConnectExistingPWPWAdress">
+                  <Form.Label column sm={3}>Pennyworth-Address</Form.Label>
+                  <Col sm={9}>
+                    <Form.Control name="pennyAdress" type="text" placeholder="0x06012c8cf97BEaD5deAe237070F9587f8E7A266d" value={this.state.pennyAdress} onChange={this.handleChange} required />
+                  </Col>
+                </Form.Group>
+                <Button variant="primary" size="lg" type="submit" className="mb-3 mt-3">
+                  Connect to existing Pennyworth Contract
+                </Button>
+              </Form>
+              <Alert className="mb-5" variant="success" show={this.state.alertVisibilityForm4} onClose={() => { this.onDismissAlert() }} dismissible>
+                <Alert.Heading>Connection established!</Alert.Heading>
+                <hr />
+                <p className="m-3">
                   See Details of the connected Pennyworth Contract below.
-            </p>
-            <Table striped bordered hover responsive size="sm">
-              <tbody>
-                <tr>
-                  <td>Artist Adress</td>
-                  <td><code>{this.state.connectedPennyWorthArtistAdress}</code></td>
-                </tr>
-                <tr>
-                  <td>Artwork Adress</td>
-                  <td><code>{this.state.connectedPennyWorthArtworkAdress}</code></td>
-                </tr>
-                <tr>
-                  <td>Patronage</td>
-                  <td><code>{this.state.pennyPatronage}</code></td>
-                </tr>
-                <tr>
-                  <td>PennyAdress</td>
-                  <td><code>{this.state.connectedPennyWorthPennyAdress}</code></td>
-                </tr>
-                <tr>
-                  <td>Penny Deposit</td>
-                  <td><code>{this.state.pennyDeposit}</code></td>
-                </tr>
-              </tbody>
-            </Table>
-          </Alert>
-          </Col>
+                </p>
+                <Table striped bordered hover responsive size="sm">
+                  <tbody>
+                    <tr>
+                      <td>Artist Adress</td>
+                      <td><code>{this.state.connectedPennyWorthArtistAdress}</code></td>
+                    </tr>
+                    <tr>
+                      <td>Artwork Adress</td>
+                      <td><code>{this.state.connectedPennyWorthArtworkAdress}</code></td>
+                    </tr>
+                    <tr>
+                      <td>Patronage</td>
+                      <td><code>{this.state.pennyPatronage}</code></td>
+                    </tr>
+                    <tr>
+                      <td>PennyAdress</td>
+                      <td><code>{this.state.connectedPennyWorthPennyAdress}</code></td>
+                    </tr>
+                    <tr>
+                      <td>Penny Deposit</td>
+                      <td><code>{this.state.pennyDeposit}</code></td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </Alert>
+            </Col>
           </Row>
           <Row className="pb-3 mb-5 pt-3">
             <Col className="p-5 mx-2 border rounded">
-            <h2>Buy and sell an Artwork</h2>
-            <Alert variant="warning">
-            <p className="mb-0">Please connect to corresponding Pennyworth Contract using the above Modal "Connect to an existing PennyWorth Contract" first.</p>
-            </Alert>
-          <Form onSubmit={this.handlePennyWorthBuy}>
-            <Form.Group as={Row} className="mb-3 mt-5" controlId="formBuySellArtworkCurrentPrice">
-              <Col sm={6}>
-              <InputGroup>
-                <InputGroup.Text>Current Price</InputGroup.Text>
-                <Form.Control type="number" placeholder="" value={this.state.pennyPrice} disabled />
-                <InputGroup.Text>ETH</InputGroup.Text>
-              </InputGroup>
-              </Col>
-              <Col sm={6}>
-              <InputGroup>
-                <InputGroup.Text>Buy Price</InputGroup.Text>
-                <Form.Control name="newPrice" type="number" placeholder="42" value={this.state.newPrice} onChange={this.handleChange} required/>
-                <InputGroup.Text>ETH</InputGroup.Text>
-              </InputGroup>
-              </Col>
-            </Form.Group>
-            <Form.Group as={Row} className="mb-3 mt-5" controlId="formConnectExistingPWPWAdress">
-                <Form.Label column sm={3}>Pennyworth-Address</Form.Label>
-                <Col sm={9}>
-                  <Form.Control name="pennyAdress" type="text" value={this.state.pennyAdress}  disabled />
+              <h2>Buy and sell an Artwork</h2>
+              <Alert variant="warning">
+                <p className="mb-0">Please connect to corresponding Pennyworth Contract using the above Modal "Connect to an existing PennyWorth Contract" first.</p>
+              </Alert>
+              <Form onSubmit={this.handlePennyWorthBuy}>
+                <Form.Group as={Row} className="mb-3 mt-5" controlId="formBuySellArtworkCurrentPrice">
+                  <Col sm={6}>
+                    <InputGroup>
+                      <InputGroup.Text>Current Price</InputGroup.Text>
+                      <Form.Control type="number" placeholder="" value={this.state.pennyPrice} disabled />
+                      <InputGroup.Text>ETH</InputGroup.Text>
+                    </InputGroup>
                   </Col>
-            </Form.Group>
-            <Form.Group as={Row} className="mb-3" controlId="formBuySellArtworkDeposit">
-              <Form.Label column sm={3}>New Deposit</Form.Label>
-              <Col sm={9}>
-              <Form.Control name="newDeposit" type="number" placeholder="1535343" value={this.state.newDeposit} onChange={this.handleChange} required/></Col>
-            </Form.Group>
-            <Button variant="primary" size="lg" type="submit" className="mb-3 mt-3" disabled={this.state.Form5Loader}>
-                {this.state.Form5Loader ? 'Transferring Artwork ...' : 'Buy Artwork'}
-            </Button>
-          </Form>
-          <Alert className="mb-5" variant="success" show={this.state.alertVisibilityForm5} onClose={()=>{this.onDismissAlert()}} dismissible>
-            <Alert.Heading>ArtworkTrade successfully.</Alert.Heading>
-            <hr />
-            <p className="m-3">
-                  See Details of the Artwork Transfer below.
-            </p>
-            The Artwork-Transfer was succesfully.
-                <ButtonGroup>
-                <Button variant="secondary" size="sm" type="submit" className="m-2" href={"https://goerli.etherscan.io/token/" + this.state.connectedPennyWorthArtworkAdress}>
-                View on Block Explorer <span aria-label="Search" role="img">🔍</span>
+                  <Col sm={6}>
+                    <InputGroup>
+                      <InputGroup.Text>Buy Price</InputGroup.Text>
+                      <Form.Control name="newPrice" type="number" placeholder="42" value={this.state.newPrice} onChange={this.handleChange} required />
+                      <InputGroup.Text>ETH</InputGroup.Text>
+                    </InputGroup>
+                  </Col>
+                </Form.Group>
+                <Form.Group as={Row} className="mb-3 mt-5" controlId="formConnectExistingPWPWAdress">
+                  <Form.Label column sm={3}>Pennyworth-Address</Form.Label>
+                  <Col sm={9}>
+                    <Form.Control name="pennyAdress" type="text" value={this.state.pennyAdress} disabled />
+                  </Col>
+                </Form.Group>
+                <Form.Group as={Row} className="mb-3" controlId="formBuySellArtworkDeposit">
+                  <Form.Label column sm={3}>New Deposit</Form.Label>
+                  <Col sm={9}>
+                    <Form.Control name="newDeposit" type="number" placeholder="1535343" value={this.state.newDeposit} onChange={this.handleChange} required /></Col>
+                </Form.Group>
+                <Button variant="primary" size="lg" type="submit" className="mb-3 mt-3" disabled={this.state.Form5Loader}>
+                  {this.state.Form5Loader ? 'Transferring Artwork ...' : 'Buy Artwork'}
                 </Button>
+              </Form>
+              <Alert className="mb-5" variant="success" show={this.state.alertVisibilityForm5} onClose={() => { this.onDismissAlert() }} dismissible>
+                <Alert.Heading>ArtworkTrade successfully.</Alert.Heading>
+                <hr />
+                <p className="m-3">
+                  See Details of the Artwork Transfer below.
+                </p>
+                The Artwork-Transfer was succesfully.
+                <ButtonGroup>
+                  <Button variant="secondary" size="sm" type="submit" className="m-2" href={"https://goerli.etherscan.io/token/" + this.state.connectedPennyWorthArtworkAdress}>
+                    View on Block Explorer <span aria-label="Search" role="img">🔍</span>
+                  </Button>
                 </ButtonGroup>
-            <Table striped bordered hover responsive size="sm">
-              <tbody>
-                <tr>
-                  <td>Artist Adress</td>
-                  <td><code>{this.state.connectedPennyWorthArtistAdress}</code></td>
-                </tr>
-                <tr>
-                  <td>Artwork Adress</td>
-                  <td><code>{this.state.connectedPennyWorthArtworkAdress}</code></td>
-                </tr>
-                <tr>
-                  <td>Patronage</td>
-                  <td><code>{this.state.pennyPatronage}</code></td>
-                </tr>
-                <tr>
-                  <td>PennyAdress</td>
-                  <td><code>{this.state.connectedPennyWorthPennyAdress}</code></td>
-                </tr>
-                <tr>
-                  <td>Penny Deposit</td>
-                  <td><code>{this.state.pennyDeposit}</code></td>
-                </tr>
-                <tr>
-                  <td>Transfer-Price</td>
-                  <td><code>{this.state.newPrice}</code></td>
-                </tr>
-              </tbody>
-            </Table>
-          </Alert>
+                <Table striped bordered hover responsive size="sm">
+                  <tbody>
+                    <tr>
+                      <td>Artist Adress</td>
+                      <td><code>{this.state.connectedPennyWorthArtistAdress}</code></td>
+                    </tr>
+                    <tr>
+                      <td>Artwork Adress</td>
+                      <td><code>{this.state.connectedPennyWorthArtworkAdress}</code></td>
+                    </tr>
+                    <tr>
+                      <td>Patronage</td>
+                      <td><code>{this.state.pennyPatronage}</code></td>
+                    </tr>
+                    <tr>
+                      <td>PennyAdress</td>
+                      <td><code>{this.state.connectedPennyWorthPennyAdress}</code></td>
+                    </tr>
+                    <tr>
+                      <td>Penny Deposit</td>
+                      <td><code>{this.state.pennyDeposit}</code></td>
+                    </tr>
+                    <tr>
+                      <td>Transfer-Price</td>
+                      <td><code>{this.state.newPrice}</code></td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </Alert>
             </Col>
           </Row>
         </Container>
