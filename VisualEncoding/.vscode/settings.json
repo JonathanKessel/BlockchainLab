@@ -1,0 +1,9 @@
+{
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "files.associations": {
+        "**/requirements{/**,*}.{txt,in}": "pip-requirements"
+    },
+    "cSpell.language": "de,en-US",
+    "svg.preview.background": "dark-transparent"
+}

@@ -1,0 +1,7 @@
+# Collection Configuration
+
+name: JART # Name of the Collection
+author: BlockchainLab # Author of the Asset
+general_description: 'This is test text frame added to all assets' # part of the Collection which will be prefixed to all generated assets.
+amount: 10 # Size of the Collection, technical maximum amount of 1.741.425.868
+grid: 6 # Specify the Grid-Layout. Supported values are 3, 6, 9 (technically also 12, 15, but this needs reworking code tu support datatype long) etc. Value must be divisible through 3 without remainder.
